@@ -1,0 +1,993 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://Alive-mk.github.io</id>
+    <title>Alive-mk</title>
+    <updated>2025-12-05T12:42:36.863Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://Alive-mk.github.io"/>
+    <link rel="self" href="https://Alive-mk.github.io/atom.xml"/>
+    <subtitle>温故而知新</subtitle>
+    <logo>https://Alive-mk.github.io/images/avatar.png</logo>
+    <icon>https://Alive-mk.github.io/favicon.ico</icon>
+    <rights>All rights reserved 2025, Alive-mk</rights>
+    <entry>
+        <title type="html"><![CDATA[MiniGPT]]></title>
+        <id>https://Alive-mk.github.io/post/minigpt/</id>
+        <link href="https://Alive-mk.github.io/post/minigpt/">
+        </link>
+        <updated>2025-12-05T12:41:23.000Z</updated>
+        <content type="html"><![CDATA[<h2 id="1-宏观视角">1. 宏观视角</h2>
+<p>假设我们正在训练这个模型，我们喂给它单词 <strong>&quot;Hello&quot;</strong> 的前四个字母作为输入：</p>
+<p>输入 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>x</mi></mrow><annotation encoding="application/x-tex">x</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">x</span></span></span></span> = <code>['H', 'e', 'l', 'l']</code></p>
+<p>我们希望模型输出（预测）的<strong>下一个</strong>字符 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>y</mi></mrow><annotation encoding="application/x-tex">y</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span></span></span></span> 应该是 <strong>o</strong></p>
+<p>其实 GPT 的原理并没有那么神秘。哪怕是现在的 ChatGPT，它在底层做的事情本质上和你刚才做的一模一样：<strong>根据上文，猜下一个字</strong>。</p>
+<p>但在我们把数据喂给模型之前，还有一个巨大的障碍：<strong>计算机（神经网络）只认识数字，不认识字母 'H' 或 'e'。</strong></p>
+<p>在 <code>minGPT</code> 的代码中，我们会先把所有出现过的字符收集起来，做一个列表（比如 <code>vocab</code>）。</p>
+<p>假设我们的词表里只有 4 个字符：<code>['e', 'H', 'l', 'o']</code>。</p>
+<p>如果要让计算机读懂 <strong>&quot;Hello&quot;</strong>，按照这个词表的顺序（0, 1, 2, 3），你觉得这就变成了一串什么数字？</p>
+<p>完整的数字序列应该是 <strong><code>[1, 0, 2, 2, 3]</code></strong>。</p>
+<p>接下来是第一层（宏观视角）里最重要的一步：<strong>如何构造训练数据 (x, y)</strong>。</p>
+<p>在 <code>minGPT</code> 的 <code>Dataset</code> 代码中，你会看到它把这一串数字切成了两半。假设我们的“视窗大小”（block_size）是 4：</p>
+<ul>
+<li><strong>输入 x</strong>: 我们取前 4 个字，即 <code>[1, 0, 2, 2]</code>（代表 &quot;Hell&quot;）。</li>
+</ul>
+<p>模型在训练时，是<strong>同时</strong>对每一个位置进行预测的。</p>
+<ol>
+<li>看到第 1 个字 <code>1</code> (H)，它应该学会预测 <code>0</code> (e)。</li>
+<li>看到前 2 个字 <code>1, 0</code> (He)，它应该学会预测 <code>2</code> (l)。</li>
+<li>看到前 3 个字 <code>1, 0, 2</code> (Hel)，它应该学会预测 <code>2</code> (l)。</li>
+<li>看到前 4 个字 <code>1, 0, 2, 2</code> (Hell)，它应该学会预测 <code>3</code> (o)。</li>
+</ol>
+<p><strong>它不仅仅只预测最后一个字，而是利用这串数据，同时训练 4 个预测任务！</strong></p>
+<p>这就好比老师让学生做题，不只看最后答案，每一步都要对。我们来看一下<strong>完整的目标序列 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>y</mi></mrow><annotation encoding="application/x-tex">y</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span></span></span></span></strong> 应该是怎样的：</p>
+<table>
+<thead>
+<tr>
+<th><strong>时间步</strong></th>
+<th><strong>输入 x (当前看到的)</strong></th>
+<th><strong>输入含义</strong></th>
+<th><strong>目标 y (预期输出)</strong></th>
+<th><strong>目标含义</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>t1</td>
+<td><strong>1</strong></td>
+<td>H</td>
+<td><strong>0</strong></td>
+<td>e</td>
+</tr>
+<tr>
+<td>t2</td>
+<td><strong>0</strong></td>
+<td>e</td>
+<td><strong>2</strong></td>
+<td>l</td>
+</tr>
+<tr>
+<td>t3</td>
+<td><strong>2</strong></td>
+<td>l</td>
+<td><strong>2</strong></td>
+<td>l</td>
+</tr>
+<tr>
+<td>t4</td>
+<td><strong>2</strong></td>
+<td>l</td>
+<td><strong>3</strong></td>
+<td>o</td>
+</tr>
+</tbody>
+</table>
+<p>所以，完整的 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>y</mi></mrow><annotation encoding="application/x-tex">y</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span></span></span></span> 实际上是 <strong><code>[0, 2, 2, 3]</code></strong>。</p>
+<p><strong>这里有一个极其重要的代码逻辑（这也是你在 <code>Dataset</code> 类中会看到的）：</strong></p>
+<p>如果原始数据是 <code>[1, 0, 2, 2, 3]</code> (Hello)：</p>
+<ul>
+<li><strong>输入 x</strong> 是从头开始，扔掉最后一个字：<code>[1, 0, 2, 2]</code></li>
+<li><strong>目标 y</strong> 是从第 2 个字开始，扔掉第一个字：<code>[0, 2, 2, 3]</code></li>
+</ul>
+<p>这就是所谓的 <strong>“错位” (Shift)</strong>。</p>
+<p>到这里，<strong>第一层（宏观视角）</strong> 就通关了：</p>
+<ol>
+<li><strong>输入</strong>：一串数字索引 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>x</mi></mrow><annotation encoding="application/x-tex">x</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">x</span></span></span></span>。</li>
+<li><strong>输出</strong>：针对 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>x</mi></mrow><annotation encoding="application/x-tex">x</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">x</span></span></span></span> 每个位置的下一个词的概率。</li>
+<li><strong>目标</strong>：输入向左移动一位的序列 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>y</mi></mrow><annotation encoding="application/x-tex">y</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span></span></span></span>。</li>
+</ol>
+<h2 id="2-中间逻辑与训练循环">2. 中间逻辑与训练循环</h2>
+<p>在这一层，我们要搞懂 AI 是如何“自我纠正”的。这部分对应代码库中的 <code>mingpt/trainer.py</code>，但最核心的逻辑其实就在这一行代码里（在 PyTorch 的训练循环中）：</p>
+<p>Python</p>
+<pre><code class="language-python">logits, loss = model(x, y)
+</code></pre>
+<p>你传给模型输入 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>x</mi></mrow><annotation encoding="application/x-tex">x</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">x</span></span></span></span> 和正确答案 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>y</mi></mrow><annotation encoding="application/x-tex">y</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span></span></span></span>，模型吐回给你两个东西：<code>logits</code> 和 <code>loss</code>。</p>
+<p>我们先看第一个返回值：<strong><code>logits</code></strong>。</p>
+<p><strong>1. 什么是 Logits？（模棱两可的猜测）</strong></p>
+<p>记得刚才我们的输入 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>x</mi></mrow><annotation encoding="application/x-tex">x</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">x</span></span></span></span> 是 <strong><code>[1, 0, 2, 2]</code></strong> (Hell) 吗？</p>
+<p>当模型读到第一个数字 <strong><code>1</code> ('H')</strong> 时，它并不会直接告诉你“下一个字是 'e'”。它给出的，是一张<strong>打分表</strong>。</p>
+<p>假设我们的词表只有 ['e', 'H', 'l', 'o'] (索引 0, 1, 2, 3)。</p>
+<p>针对第一个位置的预测，模型可能会输出这样一组原始分数（这就是 logits）：</p>
+<pre><code class="language-python">[2.5, -1.0, 0.1, 0.5]
+</code></pre>
+<p>这四个分数分别对应词表里的四个字：</p>
+<ul>
+<li>索引 0 ('e'): <strong>2.5</strong> 分</li>
+<li>索引 1 ('H'): <strong>-1.0</strong> 分</li>
+<li>索引 2 ('l'): <strong>0.1</strong> 分</li>
+<li>索引 3 ('o'): <strong>0.5</strong> 分</li>
+</ul>
+<p>这就是 <strong>Logits</strong> 的本质：它是模型给出的<strong>原始打分</strong>。分数越高，模型认为的可能性越大。</p>
+<p>现在我们要进入第二层最关键的环节：<strong>计算 Loss（损失）</strong>。</p>
+<p><strong>2. Loss 是怎么算出来的？</strong></p>
+<p>模型虽然猜对了 'e' 是最高分，但它的任务还没结束。我们需要给它的这次表现打一个具体的“分数”（惩罚值），这就叫 <strong>Loss</strong>。</p>
+<p>在 <code>minGPT</code> 里，用来计算 Loss 的方法叫 <strong>CrossEntropyLoss（交叉熵损失）</strong>。</p>
+<p>它的逻辑很简单：</p>
+<ol>
+<li><strong>看正确答案</strong>：对于第一个位置，正确答案 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>y</mi></mrow><annotation encoding="application/x-tex">y</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span></span></span></span> 是索引 <strong>0</strong> ('e')。</li>
+<li><strong>看模型表现</strong>：模型给索引 <strong>0</strong> 打了 <strong>2.5分</strong>（很高）。</li>
+<li><strong>结论</strong>：因为模型对正确答案非常有信心，所以 <strong>Loss 很小</strong>（惩罚很少）。</li>
+</ol>
+<p><strong>反之</strong>，如果模型是个笨蛋，给索引 0 打了 <strong>-10分</strong>，那 Loss 就会非常大（惩罚很重）。</p>
+<p><strong>3. 训练循环的三板斧</strong></p>
+<p>在 <code>trainer.py</code> 的 <code>run_loop</code> 函数里，你会看到这三行永远在一起的代码。这就是神经网络“学习”的全部秘密：</p>
+<pre><code>model.zero_grad() # 1. 归零
+loss.backward()   # 2. 反思
+optimizer.step()  # 3. 改进
+</code></pre>
+<p>我们可以把它想象成<strong>爬山</strong>：</p>
+<ol>
+<li><strong><code>loss</code></strong>: 告诉我们现在离山顶（完美预测）有多远。</li>
+<li><strong><code>loss.backward()</code></strong>: 算出我们要往哪个方向走才能上山（计算梯度）。</li>
+<li><strong><code>optimizer.step()</code></strong>: 实际抬起脚，往那个方向走一步（更新参数）。</li>
+</ol>
+<p>到目前为止，我们已经搞清楚了外部流程：</p>
+<ol>
+<li>数据进来了：<code>x=[1,0,2,2]</code>, <code>y=[0,2,2,3]</code>。</li>
+<li>模型瞎猜了一个分数：<code>logits</code>。</li>
+<li>我们用 <code>y</code> 去核对 <code>logits</code>，算出了 <code>loss</code>。</li>
+<li>根据 <code>loss</code>，我们修改了模型的参数，让它下次猜得更准一点。</li>
+</ol>
+<h2 id="3-微观内核与模型架构">3. 微观内核与模型架构</h2>
+<p>想象一下，刚才那个数字 <strong><code>1</code> ('H')</strong> 此时正在模型内部经历一场奇幻漂流。它主要经历了三个阶段的变形：</p>
+<p><strong>第一阶段：身份的转化 (Embedding)</strong></p>
+<p>计算机不理解整数 <code>1</code>。在 <code>GPT</code> 类的入口处，你会看到 <code>wte</code> (Word Token Embedding) 和 <code>wpe</code> (Position Embedding)。</p>
+<p>数字 <code>1</code> 被转化成了一个<strong>向量</strong>（一串长长的浮点数，比如长度为 48）。</p>
+<ul>
+<li><strong>原来的 <code>1</code></strong>：只是一个编号。</li>
+<li><strong>现在的 <code>[0.1, -0.5, 0.8, ...]</code></strong>：这串数字里不仅包含了“我是H”的信息，还包含了“我在第1个位置”的信息。</li>
+</ul>
+<p>这就好比 <strong>'H'</strong> 从一个只有编号的囚犯，变成了一个带着身份证（内容）和门牌号（位置）的自由人，我们叫它 <strong>Token 向量</strong>。</p>
+<p><strong>第二阶段：灵魂核心 —— Self-Attention (自注意力)</strong></p>
+<p>这是所有初学者最容易晕的地方，也是 Karpathy 代码里写得最精彩的地方：<code>class CausalSelfAttention</code>。</p>
+<p>现在的场景是：输入序列是 &quot;Hel&quot; (<code>1, 0, 2</code>)。 我们站在 <strong>'l' (第3个字)</strong> 的角度。为了猜出下一个字，'l' 单靠自己是不够的，它需要回头去看前面的 'H' 和 'e'，看看有没有什么线索。</p>
+<p><strong>这就是 Attention：每一个 Token 都要去“看”其他 Token，收集信息。</strong></p>
+<p>在代码中，你会看到输入向量 <code>x</code> 被拆成了三份：<strong>Query (Q), Key (K), Value (V)</strong>。</p>
+<p>这是一个非常经典的**“档案检索”**比喻：</p>
+<ol>
+<li><strong>Query (Q)</strong>: <strong>我是谁，我在找什么？</strong>
+<ul>
+<li>'l' 发出的查询请求：“我是当前的字，我想找前面的上下文。”</li>
+</ul>
+</li>
+<li><strong>Key (K)</strong>: <strong>待查询的特征</strong>
+<ul>
+<li>'H' 展示的标签：“我是大写字母，我是句首。”</li>
+<li>'e' 展示的标签：“我是元音。”</li>
+</ul>
+</li>
+<li><strong>Value (V)</strong>: <strong>待查询的实际内容</strong>
+<ul>
+<li>'H' 和 'e' 真正的语义信息。</li>
+</ul>
+</li>
+</ol>
+<p><strong>核心运算过程</strong>： 'l' 的 <strong>Query</strong> 会去和前面所有人的 <strong>Key</strong> 做点积（Dot Product）。</p>
+<ul>
+<li>如果你俩的点积很大，说明<strong>我对你很感兴趣</strong>（Attention Score 高）。</li>
+<li>如果你俩的点积很小，说明<strong>我不关心你</strong>。</li>
+</ul>
+<p>这还没完，这里有一个 <code>minGPT</code> 里最最最关键的逻辑，叫做 <strong>Causal Mask (因果遮蔽)</strong>。</p>
+<p>在代码里你会看到这样一行（类似）：</p>
+<pre><code class="language-python">att = att.masked_fill(mask == 0, float('-inf'))
+</code></pre>
+<p>这就是 GPT 里的 <strong>G (Generative)</strong> 和 <strong>P (Pre-trained)</strong> 能成立的前提——<strong>绝对不能偷看</strong>。</p>
+<p>如果它在训练时偷看到了第 4 个字，那它就学会了“抄答案”，而不是“推理”。到了真正考试（预测全新的句子）时，没有答案可抄，它就傻眼了。</p>
+<p>在 <code>minGPT</code> 的 <code>model.py</code> 代码中，这个逻辑是用一个<strong>下三角矩阵</strong>来实现的。</p>
+<p><strong>Mask 的可视化（代码里的 <code>register_buffer</code>）</strong></p>
+<p>想象一个矩阵，行代表“现在的我”，列代表“我想看的位置”。</p>
+<pre><code class="language-python">    H   e   l   l (列：被看的位置)
+H   1   0   0   0  (第一行：H 只能看 H)
+e   1   1   0   0  (第二行：e 能看 H, e)
+l   1   1   1   0  (第三行：l 能看 H, e, l) -&gt; 我们在这里
+l   1   1   1   1  (第四行：l 能看 H, e, l, l)
+</code></pre>
+<ul>
+<li><strong>1</strong> 代表允许看。</li>
+<li><strong>0</strong> 代表不允许看（在代码里会被替换成负无穷大 <code>-inf</code>）。</li>
+</ul>
+<p>当经过 Softmax 层后，那些 <code>-inf</code> 就变成了 <strong>0</strong>。这意味着：<strong>对未来的注意力权重强制为 0</strong>。</p>
+<p>最后的拼图：MLP（多层感知机）</p>
+<p>在 <code>Block</code> 类中，你会发现每个 Block 由两部分组成：</p>
+<p>Python</p>
+<pre><code class="language-python">x = x + self.attn(self.ln1(x)) # 1. 沟通 (Attention)  ln1和ln2是Normalization
+x = x + self.mlp(self.ln2(x))  # 2. 思考 (MLP)
+</code></pre>
+<p>既然 Attention 已经让大家互相交换了信息（'l' 知道了前面有 'H' 和 'e'），为什么还需要后面接一个 <strong>MLP</strong>？</p>
+<p>这里有一个非常精妙的比喻：</p>
+<ol>
+<li><strong>Attention (沟通)</strong>：就像在开会。大家互相交换资料。'l' 听到了 'H' 说它是句首，'e' 说它是元音。此时 'l' 收集了一堆信息，<strong>但它还没消化</strong>。</li>
+<li><strong>MLP (思考)</strong>：这是每个 Token <strong>独自</strong>进行的思考。'l' 拿到收集来的信息，回到自己的工位上闭门思考：“句首大写...后面跟个元音...那我很有可能是在单词 Hello 里...所以我后面大概率是 'l' 或 'o'。”</li>
+</ol>
+<p><strong>Attention 是为了获取上下文，MLP 是为了处理这些上下文并提取特征。</strong></p>
+<h2 id="4-深入理解细节">4. 深入理解细节</h2>
+<ol>
+<li><strong>深入 Self-Attention：点积与缩放的数学意义</strong></li>
+</ol>
+<p>在 <code>minGPT</code> 的 <code>CausalSelfAttention</code> 类中，最核心的一行代码是：</p>
+<p>Python</p>
+<pre><code class="language-python">att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
+</code></pre>
+<p>我们来逐项拆解它的数学和物理含义。</p>
+<p><strong>A. 为什么要 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>Q</mi><mo>×</mo><msup><mi>K</mi><mi>T</mi></msup></mrow><annotation encoding="application/x-tex">Q \times K^T</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">Q</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.8413309999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07153em;">K</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.13889em;">T</span></span></span></span></span></span></span></span></span></span></span>（点积）？</strong></p>
+<p>在向量代数中，<strong>点积（Dot Product）代表两个向量的相似度</strong>（或者说投影）。</p>
+<ul>
+<li>假设 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>q</mi></mrow><annotation encoding="application/x-tex">q</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">q</span></span></span></span> 是向量 <code>[1, 0]</code>，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span></span></span></span> 是向量 <code>[1, 0]</code>，点积为 1（完全相似）。</li>
+<li>假设 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>q</mi></mrow><annotation encoding="application/x-tex">q</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">q</span></span></span></span> 是向量 <code>[1, 0]</code>，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span></span></span></span> 是向量 <code>[0, 1]</code>，点积为 0（完全无关）。</li>
+</ul>
+<p>维度变化（重点）：</p>
+<p>假设 Batch=1, 句子长度 T=4, 向量维度 C=32。</p>
+<ul>
+<li><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>Q</mi></mrow><annotation encoding="application/x-tex">Q</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">Q</span></span></span></span> 的形状是 <code>(1, 4, 32)</code> —— 4个字，每个字32维。</li>
+<li><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>K</mi></mrow><annotation encoding="application/x-tex">K</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.07153em;">K</span></span></span></span> 的形状是 <code>(1, 4, 32)</code>。</li>
+<li><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>K</mi><mi>T</mi></msup></mrow><annotation encoding="application/x-tex">K^T</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8413309999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07153em;">K</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.13889em;">T</span></span></span></span></span></span></span></span></span></span></span> (转置后) 的形状是 <code>(1, 32, 4)</code>。</li>
+</ul>
+<p>当执行矩阵乘法 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>Q</mi><mi mathvariant="normal">@</mi><msup><mi>K</mi><mi>T</mi></msup></mrow><annotation encoding="application/x-tex">Q @ K^T</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.035771em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">Q</span><span class="mord">@</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07153em;">K</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.13889em;">T</span></span></span></span></span></span></span></span></span></span></span> 时：</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mn>1</mn><mo separator="true">,</mo><mn>4</mn><mo separator="true">,</mo><mn>32</mn><mo>)</mo><mo>×</mo><mo>(</mo><mn>1</mn><mo separator="true">,</mo><mn>32</mn><mo separator="true">,</mo><mn>4</mn><mo>)</mo><mo>→</mo><mo>(</mo><mn>1</mn><mo separator="true">,</mo><mn>4</mn><mo separator="true">,</mo><mn>4</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">(1, 4, 32) \times (1, 32, 4) \rightarrow (1, 4, 4)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">4</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">3</span><span class="mord">2</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">3</span><span class="mord">2</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">4</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">4</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">4</span><span class="mclose">)</span></span></span></span></span></p>
+<p>结果 (4, 4) 矩阵就是 Attention Map（注意力图）。</p>
+<p>这个矩阵的第 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathdefault">i</span></span></span></span> 行第 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>j</mi></mrow><annotation encoding="application/x-tex">j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span></span></span></span> 列的值，代表第 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathdefault">i</span></span></span></span> 个字对第 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>j</mi></mrow><annotation encoding="application/x-tex">j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span></span></span></span> 个字的关注程度。这就是为什么我们需要点积——它是为了计算“相关性分数”。</p>
+<p><strong>B. 为什么要除以 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msqrt><msub><mi>d</mi><mi>k</mi></msub></msqrt></mrow><annotation encoding="application/x-tex">\sqrt{d_k}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.04em;vertical-align:-0.18278000000000005em;"></span><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.85722em;"><span class="svg-align" style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord" style="padding-left:0.833em;"><span class="mord"><span class="mord mathdefault">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.81722em;"><span class="pstrut" style="height:3em;"></span><span class="hide-tail" style="min-width:0.853em;height:1.08em;"><svg width='400em' height='1.08em' viewBox='0 0 400000 1080' preserveAspectRatio='xMinYMin slice'><path d='M95,702c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,
+-10,-9.5,-14c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54c44.2,-33.3,65.8,
+-50.3,66.5,-51c1.3,-1.3,3,-2,5,-2c4.7,0,8.7,3.3,12,10s173,378,173,378c0.7,0,
+35.3,-71,104,-213c68.7,-142,137.5,-285,206.5,-429c69,-144,104.5,-217.7,106.5,
+-221c5.3,-9.3,12,-14,20,-14H400000v40H845.2724s-225.272,467,-225.272,467
+s-235,486,-235,486c-2.7,4.7,-9,7,-19,7c-6,0,-10,-1,-12,-3s-194,-422,-194,-422
+s-65,47,-65,47z M834 80H400000v40H845z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.18278000000000005em;"><span></span></span></span></span></span></span></span></span>（Scaling）？</strong></p>
+<p>代码里有一个 <code>* (1.0 / math.sqrt(k.size(-1)))</code>。</p>
+<p>深层原理：</p>
+<p>如果 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>Q</mi></mrow><annotation encoding="application/x-tex">Q</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">Q</span></span></span></span> 和 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>K</mi></mrow><annotation encoding="application/x-tex">K</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.07153em;">K</span></span></span></span> 的维度（head_size）很大，它们的点积结果方差会变得很大（有些值会变成几百，有些是几百负数）。</p>
+<p>当我们把这些巨大的数值输入到 Softmax 函数时：</p>
+<ul>
+<li>Softmax 对大数值非常敏感，会把概率分布变得极度“尖锐”（One-hot化）。</li>
+<li>这导致<strong>梯度消失</strong>。因为在 Softmax 的饱和区（极大概率或极小概率处），梯度几乎为 0，模型就学不动了。</li>
+</ul>
+<p><strong>除以 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msqrt><msub><mi>d</mi><mi>k</mi></msub></msqrt></mrow><annotation encoding="application/x-tex">\sqrt{d_k}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.04em;vertical-align:-0.18278000000000005em;"></span><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.85722em;"><span class="svg-align" style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord" style="padding-left:0.833em;"><span class="mord"><span class="mord mathdefault">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.81722em;"><span class="pstrut" style="height:3em;"></span><span class="hide-tail" style="min-width:0.853em;height:1.08em;"><svg width='400em' height='1.08em' viewBox='0 0 400000 1080' preserveAspectRatio='xMinYMin slice'><path d='M95,702c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,
+-10,-9.5,-14c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54c44.2,-33.3,65.8,
+-50.3,66.5,-51c1.3,-1.3,3,-2,5,-2c4.7,0,8.7,3.3,12,10s173,378,173,378c0.7,0,
+35.3,-71,104,-213c68.7,-142,137.5,-285,206.5,-429c69,-144,104.5,-217.7,106.5,
+-221c5.3,-9.3,12,-14,20,-14H400000v40H845.2724s-225.272,467,-225.272,467
+s-235,486,-235,486c-2.7,4.7,-9,7,-19,7c-6,0,-10,-1,-12,-3s-194,-422,-194,-422
+s-65,47,-65,47z M834 80H400000v40H845z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.18278000000000005em;"><span></span></span></span></span></span></span></span></span> 是为了把数值拉回到均值为0、方差为1的范围内，保证梯度能顺畅流动。</strong></p>
+<ol start="2">
+<li><strong>深入 Multi-Head：维度的“切分”与“重组”</strong></li>
+</ol>
+<p>这是代码中最难读懂的部分。为什么需要 Multi-Head？</p>
+<p>原理：单纯的一个 Attention 只能关注一种特征（比如“语法关系”）。我们希望模型有多个“头”，一个头关注“语法”，一个头关注“指代”，一个头关注“情感”。</p>
+<p>在 <code>minGPT</code> 中，这完全是通过**张量变形（Reshape）**实现的。</p>
+<p>假设 <code>n_embd</code> (总维度) = 768，<code>n_head</code> (头数) = 12。那么每个头的维度 <code>head_size</code> = <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>768</mn><mi mathvariant="normal">/</mi><mn>12</mn><mo>=</mo><mn>64</mn></mrow><annotation encoding="application/x-tex">768 / 12 = 64</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">7</span><span class="mord">6</span><span class="mord">8</span><span class="mord">/</span><span class="mord">1</span><span class="mord">2</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">6</span><span class="mord">4</span></span></span></span>。</p>
+<p>看看这段代码：</p>
+<pre><code class="language-python"># 1. 线性层算出 q, k, v 的大杂烩
+q = self.query(x)  # 形状: (B, T, 768)
+
+# 2. 拆分维度 (Split)
+q = q.view(B, T, self.n_head, C // self.n_head) 
+# 现在的形状: (B, T, 12, 64)
+
+# 3. 转置 (Transpose) -- 这一步最关键！
+q = q.transpose(1, 2)
+# 现在的形状: (B, 12, T, 64)
+</code></pre>
+<p><strong>为什么要 <code>transpose(1, 2)</code> 交换 T 和 Head 的维度？</strong></p>
+<p>我们要让每个 Head 独立计算 Attention。</p>
+<p>矩阵乘法默认只在最后两个维度进行。</p>
+<ul>
+<li>如果不转置：形状是 <code>(B, T, 12, 64)</code>。矩阵乘法会乱套，因为它会试图混淆 Head 和 Head_Size。</li>
+<li>转置后：形状是 <code>(B, 12, T, 64)</code>。
+<ul>
+<li>PyTorch 会把 <code>B</code> 和 <code>12</code> 看作是“批次”维度（Batch dimensions）。</li>
+<li>真正的矩阵运算发生在 <code>(T, 64) @ (64, T)</code>。</li>
+<li>这意味着：<strong>这 12 个头，就像 12 个独立的小世界，并行地计算出了 12 张不同的 Attention Map <code>(T, T)</code>。</strong></li>
+</ul>
+</li>
+</ul>
+<p>最后再通过 <code>transpose</code> 换回来，并用 <code>view</code> 把 <code>12</code> 和 <code>64</code> 拼回 <code>768</code>，这就是信息的<strong>融合</strong>。</p>
+<p><strong>3. 深入 Residual &amp; LayerNorm：模型能做“深”的秘密</strong></p>
+<p>在 <code>Block</code> 的 <code>forward</code> 函数中，你会看到这样的结构：</p>
+<pre><code class="language-python">x = x + self.attn(self.ln1(x))
+x = x + self.mlp(self.ln2(x))
+</code></pre>
+<p>这里有两个极其关键的设计，和 Google 2017 年的原版 Transformer 论文不一样。</p>
+<p><strong>A. 残差连接 (Residual Connection, <code>x + ...</code>)</strong></p>
+<p>为什么要加 x？</p>
+<p>这不仅仅是为了“保留原信息”。在反向传播时，加法运算是一个“梯度高速公路”。</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mfrac><mrow><mi mathvariant="normal">∂</mi><mo>(</mo><mi>x</mi><mo>+</mo><mi>f</mi><mo>(</mo><mi>x</mi><mo>)</mo><mo>)</mo></mrow><mrow><mi mathvariant="normal">∂</mi><mi>x</mi></mrow></mfrac><mo>=</mo><mn>1</mn><mo>+</mo><mfrac><mrow><mi mathvariant="normal">∂</mi><mi>f</mi><mo>(</mo><mi>x</mi><mo>)</mo></mrow><mrow><mi mathvariant="normal">∂</mi><mi>x</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">\frac{\partial (x + f(x))}{\partial x} = 1 + \frac{\partial f(x)}{\partial x}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.113em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.05556em;">∂</span><span class="mord mathdefault">x</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.05556em;">∂</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord mathdefault" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mclose">)</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:2.113em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.05556em;">∂</span><span class="mord mathdefault">x</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.05556em;">∂</span><span class="mord mathdefault" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<p>那个 1 保证了梯度可以直接无损地传到前一层，而不需要经过复杂的 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>f</mi><mo>(</mo><mi>x</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">f(x)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mclose">)</span></span></span></span> 导数。这就解决了深层网络梯度消失**的问题，让我们可以训练几百层的 GPT。</p>
+<p><strong>B. Pre-Norm vs Post-Norm</strong></p>
+<p>Karpathy 的 <code>minGPT</code> 使用的是 <strong>Pre-Norm</strong>（先 LayerNorm，再进 Attention），而原版论文用的是 Post-Norm（先 Attention，再 LayerNorm）。 <strong>pre与post是相对于功能层也就是attn和mlp来说的。</strong></p>
+<ul>
+<li><strong>原版 (Post-Norm)</strong>: <code>x = norm(x + sublayer(x))</code>
+<ul>
+<li>问题：如果你不想用残差分支，你很难彻底把 <code>sublayer</code> 的权重设为 0，因为外面套了个 Norm。这导致训练初期很不稳定，需要复杂的学习率预热（Warmup）。</li>
+</ul>
+</li>
+<li><strong>minGPT (Pre-Norm)</strong>: <code>x = x + sublayer(norm(x))</code>
+<ul>
+<li>优势：如果把 <code>sublayer</code> 的权重初始化得很小，整个结构就近似于 <code>x = x</code>（恒等映射）。这意味着<strong>一开始模型即使有几百层，信号也能直接通到底</strong>。这极大地提升了训练的稳定性。</li>
+</ul>
+</li>
+</ul>
+<p><strong>4. 一个隐藏的细节：权重衰减 (Weight Decay) 的黑魔法</strong></p>
+<p>如果你去看 <code>mingpt/model.py</code> 里的 <code>configure_optimizers</code> 函数，你会发现一段很长的逻辑。这是 Karpathy 的“独门绝技”。</p>
+<p>通常我们训练时会直接给所有参数加 L2 正则化（Weight Decay）。</p>
+<p>但 Karpathy 指出：</p>
+<ul>
+<li><strong>矩阵权重 (Weights)</strong>：比如 <code>wte</code>, <code>wpe</code>, <code>c_attn.weight</code> —— <strong>应该</strong>衰减，防止过拟合。</li>
+<li><strong>偏置项 (Biases) 和 LayerNorm 权重</strong>：比如 <code>c_attn.bias</code>, <code>ln_1.weight</code> —— <strong>不应该</strong>衰减！</li>
+</ul>
+<p>深度原因：</p>
+<p>LayerNorm 的权重和 Bias 只是为了控制数据的均值和方差，或者做简单的位移。它们包含的信息量很少，如果强行让它们衰减（趋向于0），会破坏数学上的统计特性，导致模型效果变差。</p>
+<p>这就是为什么你会看到代码里把参数分成了 <code>decay</code> 和 <code>no_decay</code> 两组。</p>
+<p><strong>要理解 Pre-Norm 和 Post-Norm 的本质区别</strong>，我们需要从**“信号流动的畅通度”<strong>和</strong>“梯度的反向传播”**这两个角度来看。</p>
+<p>让我们用最直观的数学和比喻来拆解它。</p>
+<ol>
+<li><strong>核心矛盾：什么是“恒等映射” (Identity Mapping)？</strong></li>
+</ol>
+<p>在深度神经网络中，最理想的初始状态是：输入是什么，输出就是什么。</p>
+<p>即 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>y</mi><mo>=</mo><mi>x</mi></mrow><annotation encoding="application/x-tex">y = x</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">x</span></span></span></span>。</p>
+<p>为什么？</p>
+<p>想象一个 100 层的网络。如果每一层都把数据稍微改一点点（比如放大 1.1 倍或缩小 0.9 倍），经过 100 次乘法后，信号要么变成天文数字（梯度爆炸），要么变成 0（梯度消失）。</p>
+<p>只有当每一层都近似于 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>y</mi><mo>=</mo><mi>x</mi></mrow><annotation encoding="application/x-tex">y=x</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">x</span></span></span></span> 时，信号才能无损地从第 1 层传到第 100 层。</p>
+<p>现在我们来看看两种结构的表现。为了方便理解，假设我们的 <code>sublayer</code>（比如 Attention 或 MLP）在初始化时的输出接近于 0（这很容易做到，只要权重很小）。</p>
+<p><strong>情况 A：Post-Norm（原版 Transformer）</strong></p>
+<p>结构是：先做加法，再做归一化。</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>x</mi><mrow><mi>o</mi><mi>u</mi><mi>t</mi></mrow></msub><mo>=</mo><mtext>LayerNorm</mtext><mo>(</mo><msub><mi>x</mi><mrow><mi>i</mi><mi>n</mi></mrow></msub><mo>+</mo><mi>F</mi><mo>(</mo><msub><mi>x</mi><mrow><mi>i</mi><mi>n</mi></mrow></msub><mo>)</mo><mo>)</mo></mrow><annotation encoding="application/x-tex">x_{out} = \text{LayerNorm}(x_{in} + F(x_{in}))
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight">u</span><span class="mord mathdefault mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">LayerNorm</span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.13889em;">F</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mclose">)</span></span></span></span></span></p>
+<p>假设 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>F</mi><mo>(</mo><msub><mi>x</mi><mrow><mi>i</mi><mi>n</mi></mrow></msub><mo>)</mo><mo>≈</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">F(x_{in}) \approx 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.13889em;">F</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>（初始阶段），那么公式变成：</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>x</mi><mrow><mi>o</mi><mi>u</mi><mi>t</mi></mrow></msub><mo>≈</mo><mtext>LayerNorm</mtext><mo>(</mo><msub><mi>x</mi><mrow><mi>i</mi><mi>n</mi></mrow></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">x_{out} \approx \text{LayerNorm}(x_{in})
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.63312em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight">u</span><span class="mord mathdefault mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">LayerNorm</span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></span></p>
+<p>问题来了： <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mtext>LayerNorm</mtext><mo>(</mo><mi>x</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">\text{LayerNorm}(x)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">LayerNorm</span></span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mclose">)</span></span></span></span> 等于 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>x</mi></mrow><annotation encoding="application/x-tex">x</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">x</span></span></span></span> 吗？</p>
+<p>绝不等于！</p>
+<p>LayerNorm 的作用是把输入强行拉回“均值为0，方差为1”的状态。</p>
+<ul>
+<li>如果 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>x</mi><mrow><mi>i</mi><mi>n</mi></mrow></msub></mrow><annotation encoding="application/x-tex">x_{in}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 原本的均值是 100，经过 LayerNorm 后变成了 0。</li>
+<li><strong>这意味着：信号被严重扭曲了。</strong> 每一层都在强行重塑数据的分布。</li>
+<li>在反向传播时，梯度也要经过这个 LayerNorm 的复杂导数计算，导致梯度在深层网络中很难传回第一层。</li>
+</ul>
+<p>这就是为什么 Post-Norm 需要 <strong>Warmup（预热）</strong>：刚开始训练时，学习率必须调得极小，小心翼翼地把每一层的参数调整好，防止一开始剧烈的分布变化把模型搞崩。</p>
+<p><strong>情况 B：Pre-Norm（minGPT / GPT-2 / GPT-3）</strong></p>
+<p>结构是：先做归一化，进子层，最后加回原输入。</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>x</mi><mrow><mi>o</mi><mi>u</mi><mi>t</mi></mrow></msub><mo>=</mo><msub><mi>x</mi><mrow><mi>i</mi><mi>n</mi></mrow></msub><mo>+</mo><mi>F</mi><mo>(</mo><mtext>LayerNorm</mtext><mo>(</mo><msub><mi>x</mi><mrow><mi>i</mi><mi>n</mi></mrow></msub><mo>)</mo><mo>)</mo></mrow><annotation encoding="application/x-tex">x_{out} = x_{in} + F(\text{LayerNorm}(x_{in}))
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight">u</span><span class="mord mathdefault mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.73333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.13889em;">F</span><span class="mopen">(</span><span class="mord text"><span class="mord">LayerNorm</span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mclose">)</span></span></span></span></span></p>
+<p>这里的 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>x</mi><mrow><mi>i</mi><mi>n</mi></mrow></msub></mrow><annotation encoding="application/x-tex">x_{in}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 是在 LayerNorm <strong>外面</strong>的，它是直接加在结果上的。即所谓的 <strong>Residual Branch（残差分支）</strong> 是主干道。</p>
+<p>假设 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>F</mi><mo>(</mo><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mo>)</mo><mo>≈</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">F(...) \approx 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.13889em;">F</span><span class="mopen">(</span><span class="mord">.</span><span class="mord">.</span><span class="mord">.</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>（初始阶段），那么公式变成：</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>x</mi><mrow><mi>o</mi><mi>u</mi><mi>t</mi></mrow></msub><mo>≈</mo><msub><mi>x</mi><mrow><mi>i</mi><mi>n</mi></mrow></msub><mo>+</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">x_{out} \approx x_{in} + 0
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.63312em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight">u</span><span class="mord mathdefault mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.73333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span></span></p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>x</mi><mrow><mi>o</mi><mi>u</mi><mi>t</mi></mrow></msub><mo>≈</mo><msub><mi>x</mi><mrow><mi>i</mi><mi>n</mi></mrow></msub></mrow><annotation encoding="application/x-tex">x_{out} \approx x_{in}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.63312em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight">u</span><span class="mord mathdefault mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></p>
+<p>这就是完美的恒等映射！</p>
+<p>无论你有 100 层还是 1000 层，在初始状态下，数据流就像走在一条畅通无阻的高速公路上。第 100 层的输出几乎就等于第 1 层的输入。模型一开始就像一个“浅层网络”，随着训练进行，F(...) 慢慢学到了东西，才开始一点点修改信号。</p>
+<p><strong>2. 梯度的视角：高速公路 vs 收费站</strong></p>
+<p>我们再看看<strong>反向传播（Backpropagation）</strong>，也就是梯度是怎么传回来的。我们要计算梯度 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mfrac><mrow><mi mathvariant="normal">∂</mi><mi>L</mi><mi>o</mi><mi>s</mi><mi>s</mi></mrow><mrow><mi mathvariant="normal">∂</mi><mi>x</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">\frac{\partial Loss}{\partial x}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.2251079999999999em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8801079999999999em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight" style="margin-right:0.05556em;">∂</span><span class="mord mathdefault mtight">x</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight" style="margin-right:0.05556em;">∂</span><span class="mord mathdefault mtight">L</span><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight">s</span><span class="mord mathdefault mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span>。</p>
+<p><strong>Pre-Norm 的梯度流</strong></p>
+<p>公式：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>y</mi><mo>=</mo><mi>x</mi><mo>+</mo><mi>F</mi><mo>(</mo><mtext>Norm</mtext><mo>(</mo><mi>x</mi><mo>)</mo><mo>)</mo></mrow><annotation encoding="application/x-tex">y = x + F(\text{Norm}(x))</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.66666em;vertical-align:-0.08333em;"></span><span class="mord mathdefault">x</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.13889em;">F</span><span class="mopen">(</span><span class="mord text"><span class="mord">Norm</span></span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mclose">)</span><span class="mclose">)</span></span></span></span></p>
+<p>根据求导法则：</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mfrac><mrow><mi mathvariant="normal">∂</mi><mi>y</mi></mrow><mrow><mi mathvariant="normal">∂</mi><mi>x</mi></mrow></mfrac><mo>=</mo><mn>1</mn><mo>+</mo><mfrac><mrow><mi mathvariant="normal">∂</mi><mi>F</mi></mrow><mrow><mi mathvariant="normal">∂</mi><mi>x</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">\frac{\partial y}{\partial x} = 1 + \frac{\partial F}{\partial x}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.0574399999999997em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714399999999998em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.05556em;">∂</span><span class="mord mathdefault">x</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.05556em;">∂</span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:2.05744em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.37144em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.05556em;">∂</span><span class="mord mathdefault">x</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.05556em;">∂</span><span class="mord mathdefault" style="margin-right:0.13889em;">F</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<p>看到那个 “1” 了吗？</p>
+<p>这不仅仅是一个数字，它是梯度高速公路。</p>
+<p>当我们把很多层叠在一起时，根据链式法则，梯度可以沿着这个“1”的路径，直接从最后一层无损地“流”回第一层。</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi><mi>r</mi><mi>a</mi><msub><mi>d</mi><mrow><mi>i</mi><mi>n</mi><mi>p</mi><mi>u</mi><mi>t</mi></mrow></msub><mo>=</mo><mi>G</mi><mi>r</mi><mi>a</mi><msub><mi>d</mi><mrow><mi>o</mi><mi>u</mi><mi>t</mi><mi>p</mi><mi>u</mi><mi>t</mi></mrow></msub><mo>×</mo><mo>(</mo><mn>1</mn><mo>+</mo><mi mathvariant="normal">Δ</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">Grad_{input} = Grad_{output} \times (1 + \Delta)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.980548em;vertical-align:-0.286108em;"></span><span class="mord mathdefault">G</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault">a</span><span class="mord"><span class="mord mathdefault">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span><span class="mord mathdefault mtight">p</span><span class="mord mathdefault mtight">u</span><span class="mord mathdefault mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.980548em;vertical-align:-0.286108em;"></span><span class="mord mathdefault">G</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault">a</span><span class="mord"><span class="mord mathdefault">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.28055599999999997em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight">u</span><span class="mord mathdefault mtight">t</span><span class="mord mathdefault mtight">p</span><span class="mord mathdefault mtight">u</span><span class="mord mathdefault mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">Δ</span><span class="mclose">)</span></span></span></span></span></p>
+<p>这保证了梯度不会消失，也不容易爆炸。</p>
+<p><strong>Post-Norm 的梯度流</strong></p>
+<p>公式：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>y</mi><mo>=</mo><mtext>Norm</mtext><mo>(</mo><mi>x</mi><mo>+</mo><mi>F</mi><mo>(</mo><mi>x</mi><mo>)</mo><mo>)</mo></mrow><annotation encoding="application/x-tex">y = \text{Norm}(x + F(x))</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">Norm</span></span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.13889em;">F</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mclose">)</span><span class="mclose">)</span></span></span></span></p>
+<p>求导时，你必须先穿过 Norm 函数：</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mfrac><mrow><mi mathvariant="normal">∂</mi><mi>y</mi></mrow><mrow><mi mathvariant="normal">∂</mi><mi>x</mi></mrow></mfrac><mo>=</mo><mfrac><mrow><mi mathvariant="normal">∂</mi><mtext>Norm</mtext></mrow><mrow><mi mathvariant="normal">∂</mi><mo>(</mo><mtext>sum</mtext><mo>)</mo></mrow></mfrac><mo>×</mo><mo>(</mo><mn>1</mn><mo>+</mo><mfrac><mrow><mi mathvariant="normal">∂</mi><mi>F</mi></mrow><mrow><mi mathvariant="normal">∂</mi><mi>x</mi></mrow></mfrac><mo>)</mo></mrow><annotation encoding="application/x-tex">\frac{\partial y}{\partial x} = \frac{\partial \text{Norm}}{\partial (\text{sum})} \times (1 + \frac{\partial F}{\partial x})
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.0574399999999997em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714399999999998em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.05556em;">∂</span><span class="mord mathdefault">x</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.05556em;">∂</span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.30744em;vertical-align:-0.936em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.37144em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.05556em;">∂</span><span class="mopen">(</span><span class="mord text"><span class="mord">sum</span></span><span class="mclose">)</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.05556em;">∂</span><span class="mord text"><span class="mord">Norm</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:2.05744em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.37144em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.05556em;">∂</span><span class="mord mathdefault">x</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.05556em;">∂</span><span class="mord mathdefault" style="margin-right:0.13889em;">F</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose">)</span></span></span></span></span></p>
+<p>那个 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mfrac><mrow><mi mathvariant="normal">∂</mi><mtext>Norm</mtext></mrow><mrow><mi mathvariant="normal">∂</mi><mo>(</mo><mtext>sum</mtext><mo>)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">\frac{\partial \text{Norm}}{\partial (\text{sum})}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.400108em;vertical-align:-0.52em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8801079999999999em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight" style="margin-right:0.05556em;">∂</span><span class="mopen mtight">(</span><span class="mord text mtight"><span class="mord mtight">sum</span></span><span class="mclose mtight">)</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight" style="margin-right:0.05556em;">∂</span><span class="mord text mtight"><span class="mord mtight">Norm</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.52em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span> 极其麻烦。它取决于当前 batch 数据的方差。</p>
+<ul>
+<li>如果方差很大，这个项会很小（除以方差），梯度就会变小。</li>
+<li>经过 100 层这样的乘法，梯度很容易就变成了 0。</li>
+</ul>
+<p><strong>为什么这个改动对 minGPT 这么重要？</strong></p>
+<p>Andrej Karpathy 作为一个极其注重实战的工程师，他选择 Pre-Norm 就是为了**“好训练”**。 使用 Pre-Norm，你可以：</p>
+<ol>
+<li><strong>大胆初始化</strong>：不需要担心梯度消失。</li>
+<li><strong>砍掉 Warmup</strong>：或者只需要很短的 Warmup。</li>
+<li><strong>加深网络</strong>：从 12 层加到 96 层（GPT-3），Pre-Norm 的训练稳定性依然很好，而 Post-Norm 早就崩了。</li>
+</ol>
+<p>这就是为什么现在的 LLM（Llama, GPT-3, PaLM 等）几乎全部采用 <strong>Pre-Norm</strong>（或其变体 RMSNorm）的原因。</p>
+<h2 id="5-生成策略">5. 生成策略</h2>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[LeetCode Hot 100]]></title>
+        <id>https://Alive-mk.github.io/post/LeetCode_Hot_100/</id>
+        <link href="https://Alive-mk.github.io/post/LeetCode_Hot_100/">
+        </link>
+        <updated>2025-12-04T12:52:14.000Z</updated>
+        <content type="html"><![CDATA[<h2 id="1-两数之和">1. 两数之和</h2>
+<p><img src="https://Alive-mk.github.io/post-images/1764854780942.png" alt="" loading="lazy"><br>
+双重循环 暴力解法 Brute Force <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></p>
+<p>在 Python 中，字典可以像“图书馆索引”一样，让我们能够在 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mn>1</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">O(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span>（常数时间）内快速判断一个元素是否存在，或者获取它的值。</p>
+<p>最直观的暴力法是双重循环，时间复杂度 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>。为了优化，我们利用 <strong>哈希表 (Dictionary)</strong> 的 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mn>1</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">O(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span> 查找特性。</p>
+<ul>
+<li>遍历数组时，计算 <code>need = target - 当前数</code>。</li>
+<li>查询 <code>need</code> 是否在哈希表中。
+<ul>
+<li>如果在，直接返回 <code>[哈希表[need], 当前下标]</code>。</li>
+<li>如果不在，将 <code>{当前数: 当前下标}</code> 存入哈希表，继续遍历。</li>
+</ul>
+</li>
+</ul>
+<p>⚠️ 避坑指南</p>
+<ol>
+<li><strong>返回顺序</strong>：虽然题目不限制，但通常习惯是 <code>[旧下标, 新下标]</code>。</li>
+<li><strong>存入时机</strong>：最好是<strong>边查边存</strong>。如果先一次性把所有数存进字典，处理“由两个相同的数组成的答案”（如 <code>[3, 3], target=6</code>）时会很麻烦，因为字典 Key 唯一，后者会覆盖前者。边查边存可以完美避开这个问题。</li>
+</ol>
+<pre><code class="language-python">class Solution(object):
+    def twoSum(self, nums, target):
+        hash_map = {}
+        for i, x in enumerate(nums):
+            need = target - x
+            if need in hash_map:
+                return [hash_map[need],i]
+            else:
+                hash_map[x] = i
+        return []
+        
+</code></pre>
+<h2 id="11-盛最多水的容器">11. 盛最多水的容器</h2>
+<figure data-type="image" tabindex="1"><img src="https://Alive-mk.github.io/post-images/1764855914207.png" alt="" loading="lazy"></figure>
+<p>核心在于理解 <strong>“短板效应”</strong>。</p>
+<ul>
+<li>双指针从两端向中间移动。</li>
+<li>面积 = <code>(right - left) * min(height[left], height[right])</code>。</li>
+<li><strong>移动策略</strong>：总是移动 <strong>高度较小</strong> 的那个指针。
+<ul>
+<li>原因：如果不移动短板，而移动长板，宽度变小，高度受限于短板不可能增加，面积只会变小。只有抛弃短板，才有可能遇到更高的柱子。</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-python">class Solution(object):
+    def maxArea(self, height):
+        left = 0
+        right = len(height) - 1
+        max_value = 0
+        
+        while left &lt; right:
+            width = right - left
+            value = width * min(height[left], height[right])
+            max_value = max(max_value, value)
+
+            if height[left] &lt; height[right]:
+                left += 1
+            else:
+                right -= 1
+
+        return max_value
+</code></pre>
+<h2 id="15-三数之和">15. 三数之和</h2>
+<figure data-type="image" tabindex="2"><img src="https://Alive-mk.github.io/post-images/1764855952997.png" alt="" loading="lazy"></figure>
+<p>核心思路</p>
+<ol>
+<li><strong>排序</strong>：这是关键！排序后才能使用双指针，也方便去重。</li>
+<li><strong>固定一位</strong>：遍历 <code>i</code>，问题转化为在 <code>i</code> 后面找 <code>Two Sum</code>。</li>
+<li><strong>双指针</strong>：<code>L</code> 在头，<code>R</code> 在尾，根据 <code>sum</code> 与 0 的关系移动。</li>
+</ol>
+<p>⚠️ 避坑指南 (超多坑！)</p>
+<ol>
+<li><strong>去重逻辑</strong>：
+<ul>
+<li>外层循环去重：<code>if i &gt; 0 and nums[i] == nums[i-1]: continue</code>。</li>
+<li>内层双指针去重：找到答案后，<code>while nums[L] == nums[L+1]</code> 要继续跳过。</li>
+</ul>
+</li>
+<li><strong>Python 短路机制</strong>：
+<ul>
+<li>❌ <code>while nums[L] == nums[L+1] and L &lt; R:</code> (会越界报错)</li>
+<li>✅ <code>while L &lt; R and nums[L] == nums[L+1]:</code> (先检查边界)</li>
+</ul>
+</li>
+<li><strong>变量更新</strong>：
+<ul>
+<li><code>total</code> 的计算必须放在 <code>while</code> 循环<strong>内部</strong>。如果放在外面，<code>total</code> 永远不会变，导致死循环。</li>
+<li>当 <code>total &lt; 0</code> 时，不需要写内层循环找数，只需要 <code>L += 1</code>，交给外层的大 <code>while</code> 重新计算即可。</li>
+</ul>
+</li>
+</ol>
+<pre><code class="language-python">class Solution(object):
+    def threeSum(self, nums):
+        nums.sort()
+        n = len(nums)
+        res = []
+        
+        for i in range(n):
+            if nums[i] &gt; 0:
+                return res
+            if i &gt; 0 and nums[i] == nums[i-1]:
+                continue
+            L = i + 1
+            R = n - 1
+
+            while L &lt; R:
+                total = nums[i] + nums[L] + nums[R]
+                if total == 0:
+                    res.append([nums[i], nums[L], nums[R]])
+
+                    while L &lt; R and nums[L] == nums[L + 1]:
+                        L += 1
+                    while L &lt; R and nums[R] == nums[R - 1]:
+                        R -= 1
+                    L += 1
+                    R -= 1
+                
+                elif total &lt; 0:
+                        L += 1
+                
+                else:
+                        R -= 1
+
+        return res
+</code></pre>
+<h2 id="双指针与哈希表的理解与区分">双指针与哈希表的理解与区分</h2>
+<h3 id="为什么两数之和首选哈希表">为什么“两数之和”首选哈希表？</h3>
+<ul>
+<li><strong>硬性限制</strong>：题目要求返回 <strong>原始下标</strong>。</li>
+<li><strong>排序的代价</strong>：如果我们对数组进行了排序，数字原本的位置就乱了。为了找回原来的下标，我们还得创建一个辅助数组存 <code>(值, 原始下标)</code>，这反而把问题复杂化了。</li>
+<li><strong>效率对比</strong>：
+<ul>
+<li><strong>哈希表</strong>：时间 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>N</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>，空间 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>N</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>。✅ <strong>(胜出)</strong></li>
+<li><strong>排序+双指针</strong>：时间 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>N</mi><mi>log</mi><mo>⁡</mo><mi>N</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N \log N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>（因为排序最快也要这么久），空间 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mn>1</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">O(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span>。</li>
+</ul>
+</li>
+</ul>
+<h3 id="为什么三数之和首选排序双指针">为什么“三数之和”首选排序+双指针？</h3>
+<ul>
+<li><strong>宽松条件</strong>：题目只要求返回 <strong>数值组合</strong>，不在乎原来的位置。</li>
+<li><strong>排序的巨大红利</strong>：
+<ol>
+<li><strong>可以使用双指针</strong>：把 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> 的暴力查找降维到 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>N</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>（外层还有个循环，所以总共是 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>）。</li>
+<li><strong>去重神器（最重要！）</strong>：
+<ul>
+<li>这是哈希表最头疼的地方。如果不排序，<code>[-1, 0, 1]</code> 和 <code>[0, 1, -1]</code> 这种重复组合很难识别，你可能需要先把它们排序再转成字符串放进 Set 里去重，效率极低且代码很难写。</li>
+<li><strong>排序后</strong>：相同的数字都挨在一起（比如 <code>[-1, -1, -1, 2...]</code>）。我们只需要写一句 <code>if nums[i] == nums[i-1]: continue</code> 就能完美避开重复答案。</li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+<h3 id="结论">结论</h3>
+<ul>
+<li><strong>找下标 / 无序数组</strong> <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>→</mo></mrow><annotation encoding="application/x-tex">\rightarrow</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">→</span></span></span></span> <strong>哈希表</strong> (Map/Set)</li>
+<li><strong>找数值 / 去重 / 已排序</strong> <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>→</mo></mrow><annotation encoding="application/x-tex">\rightarrow</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">→</span></span></span></span> <strong>双指针</strong> (Two Pointers)</li>
+</ul>
+<h2 id="3-无重复的最长子串">3. 无重复的最长子串</h2>
+<figure data-type="image" tabindex="3"><img src="https://Alive-mk.github.io/post-images/1764855979303.png" alt="" loading="lazy"></figure>
+<p>💡 核心思路</p>
+<p>维护一个窗口 <code>[left, right]</code>，保证窗口内没有重复字符。</p>
+<ul>
+<li><code>right</code> 主动向右扩。</li>
+<li>用哈希表记录 <code>{字符: 上次出现的下标}</code>。</li>
+<li>一旦遇到重复字符，<code>left</code> 需要“瞬移”到该字符上次出现位置的下一位。</li>
+</ul>
+<p>⚠️ 避坑指南 (重点！)</p>
+<p><strong>“abba”陷阱</strong>： 当 <code>left</code> 已经移动到后面时，如果遇到一个很早之前出现过的重复字符，不能直接用 <code>map[char] + 1</code> 更新 <code>left</code>，否则 <code>left</code> 会<strong>倒退</strong>，把之前剔除的字符又包进来了。 <strong>修正逻辑</strong>：<code>left = max(left, map[char] + 1)</code>。</p>
+<pre><code class="language-python">class Solution(object):
+    def lengthOfLongestSubstring(self, s):
+        char_map = {}
+        left = 0
+        max_len = 0
+
+        for right, c in enumerate(s):
+            if c in char_map:
+                left = max(left, char_map[c] + 1)
+            char_map[c] = right
+            max_len = max(max_len, right - left + 1)
+
+        return max_len
+</code></pre>
+<h2 id="2-两数相加">2. 两数相加</h2>
+<figure data-type="image" tabindex="4"><img src="https://Alive-mk.github.io/post-images/1764856002053.png" alt="" loading="lazy"></figure>
+<p>模拟小学数学竖式加法。因为链表本身是逆序存储的（个位在头节点），所以直接遍历相加即可。</p>
+<ul>
+<li>使用 <code>carry</code> 变量记录进位 (<code>val // 10</code>)。</li>
+<li>当前位的值是 <code>val % 10</code>。</li>
+<li><strong>技巧</strong>：创建一个 <strong>哑节点 (Dummy Node)</strong> 指向头节点，这样最后返回 <code>dummy.next</code> 即可，省去了处理头节点为空的麻烦。</li>
+</ul>
+<p>⚠️ 避坑指南</p>
+<ol>
+<li><strong>循环条件</strong>：最稳妥的条件是 <code>while l1 or l2 or carry:</code>。这样即使两个链表都走完了，但还有一个进位（例如 5+5=10），循环也能继续把最后的 <code>1</code>加上。</li>
+<li><strong>空指针保护</strong>：取值时要判断 <code>if l1:</code>，否则访问 <code>None.val</code> 会报错。</li>
+<li><strong>Python 语法</strong>：Python 访问属性用 <code>.</code> 而不是 <code>-&gt;</code>。</li>
+</ol>
+<pre><code class="language-python"># Definition for singly-linked list.
+# class ListNode(object):
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+class Solution(object):
+    def addTwoNumbers(self, l1, l2):
+        dummy = ListNode(0)
+        cur = dummy
+        carry = 0
+
+        while l1 or l2 or carry:
+            if l1:
+                n1 = l1.val
+                l1 = l1.next
+            else:
+                n1 = 0
+            if l2:
+                n2 = l2.val
+                l2 = l2.next
+            else:
+                n2 = 0
+            sum = n1 + n2 + carry
+            carry = sum // 10
+            result = sum % 10
+            cur.next = ListNode(result)
+            cur = cur.next
+
+        return dummy.next
+</code></pre>
+<h2 id="5-最长回文子串">5. 最长回文子串</h2>
+<figure data-type="image" tabindex="5"><img src="https://Alive-mk.github.io/post-images/1764856021966.png" alt="" loading="lazy"></figure>
+<p>💡 核心思路</p>
+<p>这里使用了 <strong>动态规划</strong> 的思想（“剥洋葱”）。</p>
+<ul>
+<li><strong>状态定义</strong>：<code>dp[i][j]</code> 表示 <code>s[i...j]</code> 是否为回文。</li>
+<li><strong>转移方程</strong>：如果 <code>s[i] == s[j]</code> 且内部 <code>s[i+1...j-1]</code> 也是回文，则 <code>dp[i][j] = True</code>。</li>
+<li><strong>填表顺序</strong>：必须先枚举 <strong>子串长度 L</strong>（从小到大），再枚举左边界 <code>i</code>。</li>
+</ul>
+<p>⚠️ 避坑指南</p>
+<ol>
+<li><strong>边界问题</strong>：当子串长度为 2 时，不需要查表，直接判断 <code>s[i] == s[j]</code> 即可。</li>
+<li><strong>初始化</strong>：所有长度为 1 的子串 <code>dp[i][i]</code> 都是 True。</li>
+<li><strong>越界检查</strong>：计算右边界 <code>j</code> 后，必须检查 <code>if j &gt;= n: break</code>。</li>
+</ol>
+<pre><code class="language-python">### 动态规划
+class Solution(object):
+    def longestPalindrome(self, s):
+        max_len = 1
+        begin = 0
+        n = len(s)
+
+        if n &lt; 2:
+            return s
+
+        dp = [[False] * n for _ in range(n)]
+
+        for i in range(n):
+            dp[i][i] = True
+
+        for L in range(2, n + 1):
+            for i in range(n):
+                j = i + L -1
+                if j &gt;= n:
+                    break
+                if s[i] == s[j]:
+                    if L == 2:
+                        dp[i][j] = True
+                    else:
+                        dp[i][j] = dp[i+1][j-1]
+                else:
+                    dp[i][j] = False
+                if dp[i][j] and L &gt; max_len:
+                    begin = i 
+                    max_len = L 
+
+        return s[begin: begin + max_len]
+</code></pre>
+<pre><code class="language-python">### 中心扩散
+class Solution(object):
+    def longestPalindrome(self, s):
+        res = &quot;&quot;
+        
+        for i in range(len(s)):
+            s1 = self.expand(s, i, i)
+            s2 = self.expand(s, i, i + 1)
+            if len(s1) &gt; len(res):
+                res = s1
+            if len(s2) &gt; len(res):
+                res = s2
+                
+        return res
+
+    def expand(self, s, left, right):
+        while left &gt;= 0 and right &lt; len(s) and s[left] == s[right]:
+            left -= 1
+            right += 1
+        return s[left + 1 : right]
+</code></pre>
+<h2 id="17-电话号码的字母组合">17. 电话号码的字母组合</h2>
+<figure data-type="image" tabindex="6"><img src="https://Alive-mk.github.io/post-images/1764911245887.png" alt="" loading="lazy"></figure>
+<p>核心思维：决策树 (Decision Tree)</p>
+<p>回溯算法本质上就是 <strong>“走迷宫”</strong> 或者 <strong>“画树”</strong>。</p>
+<p>想象一下，我们处理 <code>&quot;23&quot;</code> 的过程其实是一棵树的生长过程：</p>
+<ul>
+<li><strong>第 0 层（起点）</strong>：空字符串 <code>&quot;&quot;</code></li>
+<li><strong>第 1 层（处理 '2'）</strong>：我们有 3 个选择 -&gt; <code>a</code>, <code>b</code>, <code>c</code>
+<ul>
+<li>分支 1：选了 <code>a</code></li>
+<li>分支 2：选了 <code>b</code></li>
+<li>分支 3：选了 <code>c</code></li>
+</ul>
+</li>
+<li><strong>第 2 层（处理 '3'）</strong>：
+<ul>
+<li>如果你在分支 1 (<code>a</code>)：你有 3 个选择 (<code>d, e, f</code>) -&gt; 变成 <code>ad</code>, <code>ae</code>, <code>af</code></li>
+<li>...以此类推</li>
+</ul>
+</li>
+</ul>
+<p><strong>停止条件</strong></p>
+<p>让我们模拟一下：</p>
+<ul>
+<li><strong>Step 1:</strong> <code>index=0</code>，处理第一个数字 '2'，选了 'a'。</li>
+<li><strong>Step 2:</strong> <code>index=1</code>，处理第二个数字 '3'，选了 'd'。</li>
+<li><strong>Step 3:</strong> 此时我们已经拼好了 &quot;ad&quot;，长度是 2。这时候我们需要<strong>再往下走一步</strong>，去检查“还有没有数字要处理”。</li>
+<li><strong>Step 4:</strong> 此时 <code>index</code> 变成了 <strong>2</strong>。我们发现 <code>digits</code> 长度也是 2，<code>index == len(digits)</code>，说明数字用光了，可以收获结果了。</li>
+</ul>
+<p>所以停止条件是：<code>index == len(digits)</code>。</p>
+<p><strong>如果终止条件没达到（<code>index != len(digits)</code>），程序就会继续往下执行，进入 <code>for</code> 循环，然后再次调用自己（递归），往更深的一层钻下去。</strong></p>
+<p>这就好比你在走迷宫：</p>
+<ul>
+<li><strong>终止条件 (<code>if</code>)</strong>：就像是你问自己“到底了没有？”。如果到底了（找到出口/拼完数字），就记录结果并退回。</li>
+<li><strong>没达到条件</strong>：意味着“还没到底，还得继续往下走”。于是你进入循环，选择一条路（选一个字母），继续往前走一步（调用 <code>backtrack(index + 1, ...)</code>）。</li>
+</ul>
+<pre><code class="language-python">### 回溯基本模板
+def backtrack(选择列表, 路径):
+    if 满足停止条件:
+        res.append(路径)
+        return
+    for 选择 in 选择列表:
+        1. 做选择
+        2. 递归
+        3. 撤销选择，回溯（做其他选择）
+</code></pre>
+<pre><code class="language-python">def lettersCombination(self, digits):
+    if not digits:
+        return []
+        phone_map = {
+            '2': 'abc', '3': 'def', '4': 'ghi', '5': 'jkl', 
+            '6': 'mno', '7': 'pqrs', '8': 'tuv', '9': 'wxyz'
+        }
+        res = []
+        
+        def backtrack(index, path):
+            if index == len(digits):
+                res.append(path)
+                return
+            digit = digits[index]
+            letters = phone_map[digit]
+            for char in letters:
+                backtrack(index + 1, res + char)
+        backtrack(0, &quot;&quot;)
+        return res
+</code></pre>
+<h2 id="20-有效的括号">20. 有效的括号</h2>
+<figure data-type="image" tabindex="7"><img src="https://Alive-mk.github.io/post-images/1764912661373.png" alt="" loading="lazy"></figure>
+<p>核心思维：栈 (Stack)</p>
+<p>想象你在洗盘子，洗好一个就往上<strong>叠</strong>一个。 取盘子的时候，你只能取<strong>最上面</strong>的那一个（最后放上去的那个）。这就是 <strong>“后进先出” (LIFO - Last In First Out)</strong>。</p>
+<p><strong>为什么这题要用栈？</strong> 看这个例子：<code>{ [ ( ) ] }</code></p>
+<ul>
+<li>最先出现的是 <code>{</code>，但它最后才被闭合。</li>
+<li><strong>最后</strong>出现的左括号 <code>(</code>，反而是<strong>最先</strong>被闭合的。</li>
+</ul>
+<p>这完全符合栈的特性！</p>
+<p><strong>算法流程：</strong></p>
+<ol>
+<li>准备一个空栈 <code>stack = []</code>。</li>
+<li>遍历字符串 <code>s</code> 中的每个字符 <code>char</code>：
+<ul>
+<li><strong>如果是左括号</strong> <code>(</code>, <code>[</code>, <code>{</code>：说明还没配对，<strong>压入栈顶</strong> (Push)，等以后处理。</li>
+<li><strong>如果是右括号</strong> <code>)</code>, <code>]</code>, <code>}</code>：说明它是来“消消乐”的。它应该和<strong>栈顶</strong>的那个左括号配对。
+<ul>
+<li>检查栈顶是不是它的“另一半”。</li>
+<li>如果是 -&gt; <strong>弹出栈顶</strong> (Pop)，这一对消除。</li>
+<li>如果不是（或者栈已经空了） -&gt; <strong>报错</strong> (<code>False</code>)。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>遍历完了，如果栈是空的，说明全都消完了 -&gt; <code>True</code>。否则 -&gt; <code>False</code>。</li>
+</ol>
+<p>为了写代码方便，当我们需要判断一个 <strong>右括号</strong> (比如 <code>]</code>) 和 <strong>栈顶元素</strong> (比如 <code>[</code>) 是否匹配时，我们肯定不想写一堆 <code>if char == ')' and top == '(': ...</code>。我们在遍历时，是拿到了一个<strong>右括号</strong>，想知道它对应的<strong>左括号</strong>应该是谁，然后去跟栈顶比对。</p>
+<p>我们可以提前准备一个 <strong>“查找表”</strong>。 这个查找表（字典）应该是：Key 是右括号，Value 是左括号 <code>{ ')': '(', ... }</code></p>
+<pre><code class="language-python">def isValid(self, s):
+    stack = []
+    pairs = {')':'(', ']':'[', '}':'{'}
+    
+    for char in s:
+        if char in pairs:
+            if not stack:
+                return False
+            if stack.pop() != pairs[char]:
+                return False
+        else:
+            stack.append(char)
+    return not stack
+</code></pre>
+<h2 id="21-合并两个有序链表">21. 合并两个有序链表</h2>
+<figure data-type="image" tabindex="8"><img src="https://Alive-mk.github.io/post-images/1764924245227.png" alt="" loading="lazy"></figure>
+<p>核心逻辑：穿针引线</p>
+<p>这道题其实不需要创建新的节点（不需要 <code>new ListNode</code>），我们要做的只是<strong>调整指针</strong>，把两根链表像拉拉链一样“穿”在一起。</p>
+<p><strong>算法步骤：</strong></p>
+<ol>
+<li><strong>初始化</strong>：<code>dummy = ListNode(0)</code>, <code>cur = dummy</code>。</li>
+<li><strong>循环比大小</strong>：只要 <code>l1</code> 和 <code>l2</code> 都还有节点：
+<ul>
+<li>如果 <code>l1.val &lt; l2.val</code>：把 <code>l1</code> 接在 <code>cur</code> 后面，<code>l1</code> 往后移。</li>
+<li>否则：把 <code>l2</code> 接在 <code>cur</code> 后面，<code>l2</code> 往后移。</li>
+<li><strong>别忘了</strong>：不管接了谁，<code>cur</code> 都要往后移一位，准备接下一个。</li>
+</ul>
+</li>
+<li><strong>处理剩余</strong>：
+<ul>
+<li>这也是链表的特性：如果循环结束了，说明其中一条链表空了。</li>
+<li>因为剩下的那条链表本身就是<strong>有序</strong>的，我们不需要一个个遍历，直接把<strong>整条剩饭</strong>接在 <code>cur</code> 后面就行了！</li>
+</ul>
+</li>
+</ol>
+<pre><code class="language-python">def mergeTwoLists(self, l1, l2):
+    dummy = ListNode(0)
+    cur = dummy
+    
+    while l1 and l2:
+        if l1.val &lt; l2.val:
+            cur.next = l1
+            l1 = l1.next
+        else:
+            cur.next = l2
+            l2 = l2.next
+        cur = cur.next
+    if l1:
+        cur.next = l1
+    if l2:
+        cur.next = l2
+    return dummy.next
+</code></pre>
+<h2 id="22-括号生成">22. 括号生成</h2>
+<figure data-type="image" tabindex="9"><img src="https://Alive-mk.github.io/post-images/1764933201856.png" alt="" loading="lazy"></figure>
+<p>如果不考虑“有效”这个限制，只管排列组合，其实就是在一排空位上填 <code>(</code> 或者 <code>)</code>。 这和 <strong>第 17 题（电话号码）</strong> 非常像，每一个位置都有 2 种选择。</p>
+<p>但是，为了保证生成的括号是 <strong>有效的</strong>，我们在“做选择”的时候必须遵守 <strong>两条铁律</strong>（剪枝）：</p>
+<ol>
+<li><strong>左括号的数量 (<code>open</code>)</strong>：只要还没用完 <code>n</code> 个，随时可以加 <code>(</code>。</li>
+<li><strong>右括号的数量 (<code>close</code>)</strong>：这是一个关键限制。
+<ul>
+<li><strong>思考一下：</strong> 在什么情况下，我们才允许放右括号 <code>)</code>？</li>
+<li>是“只要没用完就能放”吗？还是说，必须得先有“欠债”的左括号，才能放右括号？</li>
+</ul>
+</li>
+</ol>
+<p><strong>引导提问：</strong> 如果你现在的字符串是 <code>&quot;())&quot;</code>，你觉得这合法吗？ 显然不合法。 所以，要放右括号 <code>)</code>，必须满足一个条件：当前已经放进去的 <strong>左括号数量 (<code>open</code>)</strong> 必须 **小于 ** 已经放进去的 <strong>右括号数量 (<code>close</code>)</strong></p>
+<p>核心逻辑总结</p>
+<p>我们的回溯函数需要维护两个计数器：</p>
+<ol>
+<li><strong><code>open</code></strong>：已经用了多少个左括号。</li>
+<li><strong><code>close</code></strong>：已经用了多少个右括号。</li>
+</ol>
+<p><strong>决策树的剪枝规则：</strong></p>
+<ul>
+<li><strong>什么时候能加 <code>(</code> ？</strong>
+<ul>
+<li>只要手里的存货没用完，即 <code>open &lt; n</code>，就可以加。</li>
+</ul>
+</li>
+<li><strong>什么时候能加 <code>)</code> ？</strong>
+<ul>
+<li><strong>重点</strong>：必须 <code>close &lt; open</code>（也就是你刚才说的，左边比右边多）时，才能加。</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-python">def generateParenthesis(self, n):
+    open = 0
+    close = 0
+    res = []
+    
+    def backtrack(open, close, path):
+        if len(path) == 2 * n:
+            res.append(path)
+            return
+        if open &lt; n:
+            backtrack(open + 1, close, path + '(')
+        if close &lt; open:
+            backtrack(open, close + 1, path + ')')
+    backtrack(0, 0, &quot;&quot;)
+    return res
+</code></pre>
+<h2 id="33-搜索旋转排序数组">33. 搜索旋转排序数组</h2>
+<figure data-type="image" tabindex="10"><img src="https://Alive-mk.github.io/post-images/1764933316980.png" alt="" loading="lazy"></figure>
+<p>虽然整体不是有序的，但通过观察，你会发现一个<strong>核心规律</strong>： <strong>无论如果你从哪里切分（计算 <code>mid</code>），整个数组一定有一半是“有序”的，另一半是“乱”的。</strong></p>
+<p><strong>引导提问：</strong></p>
+<p>假设 <code>nums = [4, 5, 6, 7, 0, 1, 2]</code>。</p>
+<ol>
+<li>如果我们选中间的 <code>7</code> (<code>mid</code> 指向 <code>7</code>)。
+<ul>
+<li>左边是 <code>[4, 5, 6]</code> (有序)</li>
+<li>右边是 <code>[0, 1, 2]</code> (有序)</li>
+<li>(这个例子比较特殊，两边都有序)</li>
+</ul>
+</li>
+<li>假设 <code>nums = [4, 5, 6, 7, 0, 1, 2]</code>，我们的 <code>mid</code> 算出来指向 <code>6</code>。
+<ul>
+<li><code>nums[0]</code> (4) <strong>小于</strong> <code>nums[mid]</code> (6)。</li>
+<li>这说明：<strong>mid 的左边</strong> (<code>4</code> 到 <code>6</code>) 一定是有序的。</li>
+</ul>
+</li>
+<li>假设 <code>nums = [6, 7, 0, 1, 2, 4, 5]</code>，我们的 <code>mid</code> 算出来指向 <code>1</code>。
+<ul>
+<li><code>nums[0]</code> (6) <strong>大于</strong> <code>nums[mid]</code> (1)。</li>
+<li>这说明：<strong>mid 的左边</strong> 是乱的（因为出现了断崖），反过来，<strong>mid 的右边</strong> (<code>1</code> 到 <code>5</code>) 一定是有序的。</li>
+</ul>
+</li>
+</ol>
+<p><strong>结论：</strong> 通过比较 <code>nums[0]</code> 和 <code>nums[mid]</code> 的大小，我们就能判断 <strong>哪一边是有序的</strong>。</p>
+<ul>
+<li>如果 <code>nums[0] &lt;= nums[mid]</code>：<strong>左半边有序</strong>。</li>
+<li>如果 <code>nums[0] &gt; nums[mid]</code>：<strong>右半边有序</strong>。</li>
+</ul>
+<p><strong>只要确定了哪边有序，我们就可以判断 <code>target</code> 是不是在那个有序的区间里！</strong></p>
+<p><strong>逻辑演练</strong></p>
+<p><strong>Case 1: 左半边有序</strong> 假设 <code>nums = [4, 5, 6, 7, 0, 1, 2]</code>, <code>mid</code> 指向 <code>6</code>, <code>target</code> 是 <code>5</code>。</p>
+<ul>
+<li>判断：<code>nums[0] (4) &lt;= nums[mid] (6)</code> -&gt; <strong>左边有序</strong> (<code>[4, 5, 6]</code>)。</li>
+<li>检查 <code>target</code>：<code>5</code> 在 <code>4</code> 和 <code>6</code> 之间吗？(<code>4 &lt;= 5 &lt; 6</code>)
+<ul>
+<li><strong>在！</strong> 那我们只需要去左边找 (<code>right = mid - 1</code>)。</li>
+<li><strong>不在！</strong> 那肯定在右边那堆乱的里面 (<code>left = mid + 1</code>)。</li>
+</ul>
+</li>
+</ul>
+<p><strong>Case 2: 右半边有序</strong> 假设 <code>nums = [6, 7, 0, 1, 2, 4, 5]</code>, <code>mid</code> 指向 <code>1</code>, <code>target</code> 是 <code>4</code>。</p>
+<ul>
+<li>判断：<code>nums[0] (6) &gt; nums[mid] (1)</code> -&gt; <strong>右边有序</strong> (<code>[1, 2, 4, 5]</code>)。</li>
+<li>检查 <code>target</code>：<code>4</code> 在 <code>1</code> 和 <code>5</code> 之间吗？(<code>1 &lt; 4 &lt;= 5</code>)
+<ul>
+<li><strong>在！</strong> 去右边找 (<code>left = mid + 1</code>)。</li>
+<li><strong>不在！</strong> 去左边找 (<code>right = mid - 1</code>)。</li>
+</ul>
+</li>
+</ul>
+<p>💡 一个小小的优化建议 (Best Practice)</p>
+<p>虽然你用 <code>nums[0] &lt;= nums[mid]</code> 来判断左半边是否有序在 <strong>本题 (所有数字互不相同)</strong> 中是完全可行的，但在更通用的写法中，通常习惯使用 <strong><code>nums[left]</code></strong> 来代替 <code>nums[0]</code>。</p>
+<p>即：<code>if nums[left] &lt;= nums[mid]:</code></p>
+<p><strong>原因：</strong> 使用 <code>left</code> 指针更符合“关注当前搜索区间 <code>[left, right]</code>”的语义。虽然在这道题里 <code>nums[0]</code> 作为全局锚点效果一样，但养成使用 <code>nums[left]</code> 的习惯，能让你在处理<strong>含有重复数字</strong>的旋转数组（如 LeetCode 81 题）时更容易迁移思路。</p>
+<pre><code class="language-python">def search(self, nums, target):
+    if not nums:
+        return -1
+    left, right = 0, len(nums) - 1
+    
+    while left &lt;= right: ### 常规二分查找的循环条件
+        mid = (left + right) // 2
+        if nums[mid] == target:
+            return mid
+        if nums[left] &lt;= nums[mid]:
+            if nums[left] &lt;= target &lt; nums[mid]:
+                right = mid - 1
+            else:
+                left = left + 1
+        else:
+            if nums[mid] &lt;= target &lt;= nums[right]:
+                left = left + 1
+            else:
+                right = right - 1
+    
+    return -1
+    
+</code></pre>
+]]></content>
+    </entry>
+</feed>

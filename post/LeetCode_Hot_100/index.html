@@ -1,0 +1,739 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LeetCode Hot 100 | Alive-mk</title>
+<link rel="shortcut icon" href="https://Alive-mk.github.io/favicon.ico?v=1764938524691">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://Alive-mk.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="LeetCode Hot 100 | Alive-mk - Atom Feed" href="https://Alive-mk.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="1. 两数之和
+
+双重循环 暴力解法 Brute Force O(N2)O(N^2)O(N2)
+在 Python 中，字典可以像“图书馆索引”一样，让我们能够在 O(1)O(1)O(1)（常数时间）内快速判断一个元素是否存在，或者获取它的值..." />
+    <meta name="keywords" content="leetcode" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://Alive-mk.github.io">
+  <img class="avatar" src="https://Alive-mk.github.io/images/avatar.png?v=1764938524691" alt="">
+  </a>
+  <h1 class="site-title">
+    Alive-mk
+  </h1>
+  <p class="site-description">
+    温故而知新
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              LeetCode Hot 100
+            </h2>
+            <div class="post-info">
+              <span>
+                2025-12-04
+              </span>
+              <span>
+                19 min read
+              </span>
+              
+                <a href="https://Alive-mk.github.io/tag/tag/leetcode/" class="post-tag">
+                  # leetcode
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <h2 id="1-两数之和">1. 两数之和</h2>
+<p><img src="https://Alive-mk.github.io/post-images/1764854780942.png" alt="" loading="lazy"><br>
+双重循环 暴力解法 Brute Force <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></p>
+<p>在 Python 中，字典可以像“图书馆索引”一样，让我们能够在 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mn>1</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">O(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span>（常数时间）内快速判断一个元素是否存在，或者获取它的值。</p>
+<p>最直观的暴力法是双重循环，时间复杂度 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>。为了优化，我们利用 <strong>哈希表 (Dictionary)</strong> 的 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mn>1</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">O(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span> 查找特性。</p>
+<ul>
+<li>遍历数组时，计算 <code>need = target - 当前数</code>。</li>
+<li>查询 <code>need</code> 是否在哈希表中。
+<ul>
+<li>如果在，直接返回 <code>[哈希表[need], 当前下标]</code>。</li>
+<li>如果不在，将 <code>{当前数: 当前下标}</code> 存入哈希表，继续遍历。</li>
+</ul>
+</li>
+</ul>
+<p>⚠️ 避坑指南</p>
+<ol>
+<li><strong>返回顺序</strong>：虽然题目不限制，但通常习惯是 <code>[旧下标, 新下标]</code>。</li>
+<li><strong>存入时机</strong>：最好是<strong>边查边存</strong>。如果先一次性把所有数存进字典，处理“由两个相同的数组成的答案”（如 <code>[3, 3], target=6</code>）时会很麻烦，因为字典 Key 唯一，后者会覆盖前者。边查边存可以完美避开这个问题。</li>
+</ol>
+<pre><code class="language-python">class Solution(object):
+    def twoSum(self, nums, target):
+        hash_map = {}
+        for i, x in enumerate(nums):
+            need = target - x
+            if need in hash_map:
+                return [hash_map[need],i]
+            else:
+                hash_map[x] = i
+        return []
+        
+</code></pre>
+<h2 id="11-盛最多水的容器">11. 盛最多水的容器</h2>
+<figure data-type="image" tabindex="1"><img src="https://Alive-mk.github.io/post-images/1764855914207.png" alt="" loading="lazy"></figure>
+<p>核心在于理解 <strong>“短板效应”</strong>。</p>
+<ul>
+<li>双指针从两端向中间移动。</li>
+<li>面积 = <code>(right - left) * min(height[left], height[right])</code>。</li>
+<li><strong>移动策略</strong>：总是移动 <strong>高度较小</strong> 的那个指针。
+<ul>
+<li>原因：如果不移动短板，而移动长板，宽度变小，高度受限于短板不可能增加，面积只会变小。只有抛弃短板，才有可能遇到更高的柱子。</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-python">class Solution(object):
+    def maxArea(self, height):
+        left = 0
+        right = len(height) - 1
+        max_value = 0
+        
+        while left &lt; right:
+            width = right - left
+            value = width * min(height[left], height[right])
+            max_value = max(max_value, value)
+
+            if height[left] &lt; height[right]:
+                left += 1
+            else:
+                right -= 1
+
+        return max_value
+</code></pre>
+<h2 id="15-三数之和">15. 三数之和</h2>
+<figure data-type="image" tabindex="2"><img src="https://Alive-mk.github.io/post-images/1764855952997.png" alt="" loading="lazy"></figure>
+<p>核心思路</p>
+<ol>
+<li><strong>排序</strong>：这是关键！排序后才能使用双指针，也方便去重。</li>
+<li><strong>固定一位</strong>：遍历 <code>i</code>，问题转化为在 <code>i</code> 后面找 <code>Two Sum</code>。</li>
+<li><strong>双指针</strong>：<code>L</code> 在头，<code>R</code> 在尾，根据 <code>sum</code> 与 0 的关系移动。</li>
+</ol>
+<p>⚠️ 避坑指南 (超多坑！)</p>
+<ol>
+<li><strong>去重逻辑</strong>：
+<ul>
+<li>外层循环去重：<code>if i &gt; 0 and nums[i] == nums[i-1]: continue</code>。</li>
+<li>内层双指针去重：找到答案后，<code>while nums[L] == nums[L+1]</code> 要继续跳过。</li>
+</ul>
+</li>
+<li><strong>Python 短路机制</strong>：
+<ul>
+<li>❌ <code>while nums[L] == nums[L+1] and L &lt; R:</code> (会越界报错)</li>
+<li>✅ <code>while L &lt; R and nums[L] == nums[L+1]:</code> (先检查边界)</li>
+</ul>
+</li>
+<li><strong>变量更新</strong>：
+<ul>
+<li><code>total</code> 的计算必须放在 <code>while</code> 循环<strong>内部</strong>。如果放在外面，<code>total</code> 永远不会变，导致死循环。</li>
+<li>当 <code>total &lt; 0</code> 时，不需要写内层循环找数，只需要 <code>L += 1</code>，交给外层的大 <code>while</code> 重新计算即可。</li>
+</ul>
+</li>
+</ol>
+<pre><code class="language-python">class Solution(object):
+    def threeSum(self, nums):
+        nums.sort()
+        n = len(nums)
+        res = []
+        
+        for i in range(n):
+            if nums[i] &gt; 0:
+                return res
+            if i &gt; 0 and nums[i] == nums[i-1]:
+                continue
+            L = i + 1
+            R = n - 1
+
+            while L &lt; R:
+                total = nums[i] + nums[L] + nums[R]
+                if total == 0:
+                    res.append([nums[i], nums[L], nums[R]])
+
+                    while L &lt; R and nums[L] == nums[L + 1]:
+                        L += 1
+                    while L &lt; R and nums[R] == nums[R - 1]:
+                        R -= 1
+                    L += 1
+                    R -= 1
+                
+                elif total &lt; 0:
+                        L += 1
+                
+                else:
+                        R -= 1
+
+        return res
+</code></pre>
+<h2 id="双指针与哈希表的理解与区分">双指针与哈希表的理解与区分</h2>
+<h3 id="为什么两数之和首选哈希表">为什么“两数之和”首选哈希表？</h3>
+<ul>
+<li><strong>硬性限制</strong>：题目要求返回 <strong>原始下标</strong>。</li>
+<li><strong>排序的代价</strong>：如果我们对数组进行了排序，数字原本的位置就乱了。为了找回原来的下标，我们还得创建一个辅助数组存 <code>(值, 原始下标)</code>，这反而把问题复杂化了。</li>
+<li><strong>效率对比</strong>：
+<ul>
+<li><strong>哈希表</strong>：时间 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>N</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>，空间 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>N</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>。✅ <strong>(胜出)</strong></li>
+<li><strong>排序+双指针</strong>：时间 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>N</mi><mi>log</mi><mo>⁡</mo><mi>N</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N \log N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>（因为排序最快也要这么久），空间 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mn>1</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">O(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span>。</li>
+</ul>
+</li>
+</ul>
+<h3 id="为什么三数之和首选排序双指针">为什么“三数之和”首选排序+双指针？</h3>
+<ul>
+<li><strong>宽松条件</strong>：题目只要求返回 <strong>数值组合</strong>，不在乎原来的位置。</li>
+<li><strong>排序的巨大红利</strong>：
+<ol>
+<li><strong>可以使用双指针</strong>：把 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> 的暴力查找降维到 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>N</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>（外层还有个循环，所以总共是 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>）。</li>
+<li><strong>去重神器（最重要！）</strong>：
+<ul>
+<li>这是哈希表最头疼的地方。如果不排序，<code>[-1, 0, 1]</code> 和 <code>[0, 1, -1]</code> 这种重复组合很难识别，你可能需要先把它们排序再转成字符串放进 Set 里去重，效率极低且代码很难写。</li>
+<li><strong>排序后</strong>：相同的数字都挨在一起（比如 <code>[-1, -1, -1, 2...]</code>）。我们只需要写一句 <code>if nums[i] == nums[i-1]: continue</code> 就能完美避开重复答案。</li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+<h3 id="结论">结论</h3>
+<ul>
+<li><strong>找下标 / 无序数组</strong> <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>→</mo></mrow><annotation encoding="application/x-tex">\rightarrow</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">→</span></span></span></span> <strong>哈希表</strong> (Map/Set)</li>
+<li><strong>找数值 / 去重 / 已排序</strong> <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>→</mo></mrow><annotation encoding="application/x-tex">\rightarrow</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">→</span></span></span></span> <strong>双指针</strong> (Two Pointers)</li>
+</ul>
+<h2 id="3-无重复的最长子串">3. 无重复的最长子串</h2>
+<figure data-type="image" tabindex="3"><img src="https://Alive-mk.github.io/post-images/1764855979303.png" alt="" loading="lazy"></figure>
+<p>💡 核心思路</p>
+<p>维护一个窗口 <code>[left, right]</code>，保证窗口内没有重复字符。</p>
+<ul>
+<li><code>right</code> 主动向右扩。</li>
+<li>用哈希表记录 <code>{字符: 上次出现的下标}</code>。</li>
+<li>一旦遇到重复字符，<code>left</code> 需要“瞬移”到该字符上次出现位置的下一位。</li>
+</ul>
+<p>⚠️ 避坑指南 (重点！)</p>
+<p><strong>“abba”陷阱</strong>： 当 <code>left</code> 已经移动到后面时，如果遇到一个很早之前出现过的重复字符，不能直接用 <code>map[char] + 1</code> 更新 <code>left</code>，否则 <code>left</code> 会<strong>倒退</strong>，把之前剔除的字符又包进来了。 <strong>修正逻辑</strong>：<code>left = max(left, map[char] + 1)</code>。</p>
+<pre><code class="language-python">class Solution(object):
+    def lengthOfLongestSubstring(self, s):
+        char_map = {}
+        left = 0
+        max_len = 0
+
+        for right, c in enumerate(s):
+            if c in char_map:
+                left = max(left, char_map[c] + 1)
+            char_map[c] = right
+            max_len = max(max_len, right - left + 1)
+
+        return max_len
+</code></pre>
+<h2 id="2-两数相加">2. 两数相加</h2>
+<figure data-type="image" tabindex="4"><img src="https://Alive-mk.github.io/post-images/1764856002053.png" alt="" loading="lazy"></figure>
+<p>模拟小学数学竖式加法。因为链表本身是逆序存储的（个位在头节点），所以直接遍历相加即可。</p>
+<ul>
+<li>使用 <code>carry</code> 变量记录进位 (<code>val // 10</code>)。</li>
+<li>当前位的值是 <code>val % 10</code>。</li>
+<li><strong>技巧</strong>：创建一个 <strong>哑节点 (Dummy Node)</strong> 指向头节点，这样最后返回 <code>dummy.next</code> 即可，省去了处理头节点为空的麻烦。</li>
+</ul>
+<p>⚠️ 避坑指南</p>
+<ol>
+<li><strong>循环条件</strong>：最稳妥的条件是 <code>while l1 or l2 or carry:</code>。这样即使两个链表都走完了，但还有一个进位（例如 5+5=10），循环也能继续把最后的 <code>1</code>加上。</li>
+<li><strong>空指针保护</strong>：取值时要判断 <code>if l1:</code>，否则访问 <code>None.val</code> 会报错。</li>
+<li><strong>Python 语法</strong>：Python 访问属性用 <code>.</code> 而不是 <code>-&gt;</code>。</li>
+</ol>
+<pre><code class="language-python"># Definition for singly-linked list.
+# class ListNode(object):
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+class Solution(object):
+    def addTwoNumbers(self, l1, l2):
+        dummy = ListNode(0)
+        cur = dummy
+        carry = 0
+
+        while l1 or l2 or carry:
+            if l1:
+                n1 = l1.val
+                l1 = l1.next
+            else:
+                n1 = 0
+            if l2:
+                n2 = l2.val
+                l2 = l2.next
+            else:
+                n2 = 0
+            sum = n1 + n2 + carry
+            carry = sum // 10
+            result = sum % 10
+            cur.next = ListNode(result)
+            cur = cur.next
+
+        return dummy.next
+</code></pre>
+<h2 id="5-最长回文子串">5. 最长回文子串</h2>
+<figure data-type="image" tabindex="5"><img src="https://Alive-mk.github.io/post-images/1764856021966.png" alt="" loading="lazy"></figure>
+<p>💡 核心思路</p>
+<p>这里使用了 <strong>动态规划</strong> 的思想（“剥洋葱”）。</p>
+<ul>
+<li><strong>状态定义</strong>：<code>dp[i][j]</code> 表示 <code>s[i...j]</code> 是否为回文。</li>
+<li><strong>转移方程</strong>：如果 <code>s[i] == s[j]</code> 且内部 <code>s[i+1...j-1]</code> 也是回文，则 <code>dp[i][j] = True</code>。</li>
+<li><strong>填表顺序</strong>：必须先枚举 <strong>子串长度 L</strong>（从小到大），再枚举左边界 <code>i</code>。</li>
+</ul>
+<p>⚠️ 避坑指南</p>
+<ol>
+<li><strong>边界问题</strong>：当子串长度为 2 时，不需要查表，直接判断 <code>s[i] == s[j]</code> 即可。</li>
+<li><strong>初始化</strong>：所有长度为 1 的子串 <code>dp[i][i]</code> 都是 True。</li>
+<li><strong>越界检查</strong>：计算右边界 <code>j</code> 后，必须检查 <code>if j &gt;= n: break</code>。</li>
+</ol>
+<pre><code class="language-python">### 动态规划
+class Solution(object):
+    def longestPalindrome(self, s):
+        max_len = 1
+        begin = 0
+        n = len(s)
+
+        if n &lt; 2:
+            return s
+
+        dp = [[False] * n for _ in range(n)]
+
+        for i in range(n):
+            dp[i][i] = True
+
+        for L in range(2, n + 1):
+            for i in range(n):
+                j = i + L -1
+                if j &gt;= n:
+                    break
+                if s[i] == s[j]:
+                    if L == 2:
+                        dp[i][j] = True
+                    else:
+                        dp[i][j] = dp[i+1][j-1]
+                else:
+                    dp[i][j] = False
+                if dp[i][j] and L &gt; max_len:
+                    begin = i 
+                    max_len = L 
+
+        return s[begin: begin + max_len]
+</code></pre>
+<pre><code class="language-python">### 中心扩散
+class Solution(object):
+    def longestPalindrome(self, s):
+        res = &quot;&quot;
+        
+        for i in range(len(s)):
+            s1 = self.expand(s, i, i)
+            s2 = self.expand(s, i, i + 1)
+            if len(s1) &gt; len(res):
+                res = s1
+            if len(s2) &gt; len(res):
+                res = s2
+                
+        return res
+
+    def expand(self, s, left, right):
+        while left &gt;= 0 and right &lt; len(s) and s[left] == s[right]:
+            left -= 1
+            right += 1
+        return s[left + 1 : right]
+</code></pre>
+<h2 id="17-电话号码的字母组合">17. 电话号码的字母组合</h2>
+<figure data-type="image" tabindex="6"><img src="https://Alive-mk.github.io/post-images/1764911245887.png" alt="" loading="lazy"></figure>
+<p>核心思维：决策树 (Decision Tree)</p>
+<p>回溯算法本质上就是 <strong>“走迷宫”</strong> 或者 <strong>“画树”</strong>。</p>
+<p>想象一下，我们处理 <code>&quot;23&quot;</code> 的过程其实是一棵树的生长过程：</p>
+<ul>
+<li><strong>第 0 层（起点）</strong>：空字符串 <code>&quot;&quot;</code></li>
+<li><strong>第 1 层（处理 '2'）</strong>：我们有 3 个选择 -&gt; <code>a</code>, <code>b</code>, <code>c</code>
+<ul>
+<li>分支 1：选了 <code>a</code></li>
+<li>分支 2：选了 <code>b</code></li>
+<li>分支 3：选了 <code>c</code></li>
+</ul>
+</li>
+<li><strong>第 2 层（处理 '3'）</strong>：
+<ul>
+<li>如果你在分支 1 (<code>a</code>)：你有 3 个选择 (<code>d, e, f</code>) -&gt; 变成 <code>ad</code>, <code>ae</code>, <code>af</code></li>
+<li>...以此类推</li>
+</ul>
+</li>
+</ul>
+<p><strong>停止条件</strong></p>
+<p>让我们模拟一下：</p>
+<ul>
+<li><strong>Step 1:</strong> <code>index=0</code>，处理第一个数字 '2'，选了 'a'。</li>
+<li><strong>Step 2:</strong> <code>index=1</code>，处理第二个数字 '3'，选了 'd'。</li>
+<li><strong>Step 3:</strong> 此时我们已经拼好了 &quot;ad&quot;，长度是 2。这时候我们需要<strong>再往下走一步</strong>，去检查“还有没有数字要处理”。</li>
+<li><strong>Step 4:</strong> 此时 <code>index</code> 变成了 <strong>2</strong>。我们发现 <code>digits</code> 长度也是 2，<code>index == len(digits)</code>，说明数字用光了，可以收获结果了。</li>
+</ul>
+<p>所以停止条件是：<code>index == len(digits)</code>。</p>
+<p><strong>如果终止条件没达到（<code>index != len(digits)</code>），程序就会继续往下执行，进入 <code>for</code> 循环，然后再次调用自己（递归），往更深的一层钻下去。</strong></p>
+<p>这就好比你在走迷宫：</p>
+<ul>
+<li><strong>终止条件 (<code>if</code>)</strong>：就像是你问自己“到底了没有？”。如果到底了（找到出口/拼完数字），就记录结果并退回。</li>
+<li><strong>没达到条件</strong>：意味着“还没到底，还得继续往下走”。于是你进入循环，选择一条路（选一个字母），继续往前走一步（调用 <code>backtrack(index + 1, ...)</code>）。</li>
+</ul>
+<pre><code class="language-python">### 回溯基本模板
+def backtrack(选择列表, 路径):
+    if 满足停止条件:
+        res.append(路径)
+        return
+    for 选择 in 选择列表:
+        1. 做选择
+        2. 递归
+        3. 撤销选择，回溯（做其他选择）
+</code></pre>
+<pre><code class="language-python">def lettersCombination(self, digits):
+    if not digits:
+        return []
+        phone_map = {
+            '2': 'abc', '3': 'def', '4': 'ghi', '5': 'jkl', 
+            '6': 'mno', '7': 'pqrs', '8': 'tuv', '9': 'wxyz'
+        }
+        res = []
+        
+        def backtrack(index, path):
+            if index == len(digits):
+                res.append(path)
+                return
+            digit = digits[index]
+            letters = phone_map[digit]
+            for char in letters:
+                backtrack(index + 1, res + char)
+        backtrack(0, &quot;&quot;)
+        return res
+</code></pre>
+<h2 id="20-有效的括号">20. 有效的括号</h2>
+<figure data-type="image" tabindex="7"><img src="https://Alive-mk.github.io/post-images/1764912661373.png" alt="" loading="lazy"></figure>
+<p>核心思维：栈 (Stack)</p>
+<p>想象你在洗盘子，洗好一个就往上<strong>叠</strong>一个。 取盘子的时候，你只能取<strong>最上面</strong>的那一个（最后放上去的那个）。这就是 <strong>“后进先出” (LIFO - Last In First Out)</strong>。</p>
+<p><strong>为什么这题要用栈？</strong> 看这个例子：<code>{ [ ( ) ] }</code></p>
+<ul>
+<li>最先出现的是 <code>{</code>，但它最后才被闭合。</li>
+<li><strong>最后</strong>出现的左括号 <code>(</code>，反而是<strong>最先</strong>被闭合的。</li>
+</ul>
+<p>这完全符合栈的特性！</p>
+<p><strong>算法流程：</strong></p>
+<ol>
+<li>准备一个空栈 <code>stack = []</code>。</li>
+<li>遍历字符串 <code>s</code> 中的每个字符 <code>char</code>：
+<ul>
+<li><strong>如果是左括号</strong> <code>(</code>, <code>[</code>, <code>{</code>：说明还没配对，<strong>压入栈顶</strong> (Push)，等以后处理。</li>
+<li><strong>如果是右括号</strong> <code>)</code>, <code>]</code>, <code>}</code>：说明它是来“消消乐”的。它应该和<strong>栈顶</strong>的那个左括号配对。
+<ul>
+<li>检查栈顶是不是它的“另一半”。</li>
+<li>如果是 -&gt; <strong>弹出栈顶</strong> (Pop)，这一对消除。</li>
+<li>如果不是（或者栈已经空了） -&gt; <strong>报错</strong> (<code>False</code>)。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>遍历完了，如果栈是空的，说明全都消完了 -&gt; <code>True</code>。否则 -&gt; <code>False</code>。</li>
+</ol>
+<p>为了写代码方便，当我们需要判断一个 <strong>右括号</strong> (比如 <code>]</code>) 和 <strong>栈顶元素</strong> (比如 <code>[</code>) 是否匹配时，我们肯定不想写一堆 <code>if char == ')' and top == '(': ...</code>。我们在遍历时，是拿到了一个<strong>右括号</strong>，想知道它对应的<strong>左括号</strong>应该是谁，然后去跟栈顶比对。</p>
+<p>我们可以提前准备一个 <strong>“查找表”</strong>。 这个查找表（字典）应该是：Key 是右括号，Value 是左括号 <code>{ ')': '(', ... }</code></p>
+<pre><code class="language-python">def isValid(self, s):
+    stack = []
+    pairs = {')':'(', ']':'[', '}':'{'}
+    
+    for char in s:
+        if char in pairs:
+            if not stack:
+                return False
+            if stack.pop() != pairs[char]:
+                return False
+        else:
+            stack.append(char)
+    return not stack
+</code></pre>
+<h2 id="21-合并两个有序链表">21. 合并两个有序链表</h2>
+<figure data-type="image" tabindex="8"><img src="https://Alive-mk.github.io/post-images/1764924245227.png" alt="" loading="lazy"></figure>
+<p>核心逻辑：穿针引线</p>
+<p>这道题其实不需要创建新的节点（不需要 <code>new ListNode</code>），我们要做的只是<strong>调整指针</strong>，把两根链表像拉拉链一样“穿”在一起。</p>
+<p><strong>算法步骤：</strong></p>
+<ol>
+<li><strong>初始化</strong>：<code>dummy = ListNode(0)</code>, <code>cur = dummy</code>。</li>
+<li><strong>循环比大小</strong>：只要 <code>l1</code> 和 <code>l2</code> 都还有节点：
+<ul>
+<li>如果 <code>l1.val &lt; l2.val</code>：把 <code>l1</code> 接在 <code>cur</code> 后面，<code>l1</code> 往后移。</li>
+<li>否则：把 <code>l2</code> 接在 <code>cur</code> 后面，<code>l2</code> 往后移。</li>
+<li><strong>别忘了</strong>：不管接了谁，<code>cur</code> 都要往后移一位，准备接下一个。</li>
+</ul>
+</li>
+<li><strong>处理剩余</strong>：
+<ul>
+<li>这也是链表的特性：如果循环结束了，说明其中一条链表空了。</li>
+<li>因为剩下的那条链表本身就是<strong>有序</strong>的，我们不需要一个个遍历，直接把<strong>整条剩饭</strong>接在 <code>cur</code> 后面就行了！</li>
+</ul>
+</li>
+</ol>
+<pre><code class="language-python">def mergeTwoLists(self, l1, l2):
+    dummy = ListNode(0)
+    cur = dummy
+    
+    while l1 and l2:
+        if l1.val &lt; l2.val:
+            cur.next = l1
+            l1 = l1.next
+        else:
+            cur.next = l2
+            l2 = l2.next
+        cur = cur.next
+    if l1:
+        cur.next = l1
+    if l2:
+        cur.next = l2
+    return dummy.next
+</code></pre>
+<h2 id="22-括号生成">22. 括号生成</h2>
+<figure data-type="image" tabindex="9"><img src="https://Alive-mk.github.io/post-images/1764933201856.png" alt="" loading="lazy"></figure>
+<p>如果不考虑“有效”这个限制，只管排列组合，其实就是在一排空位上填 <code>(</code> 或者 <code>)</code>。 这和 <strong>第 17 题（电话号码）</strong> 非常像，每一个位置都有 2 种选择。</p>
+<p>但是，为了保证生成的括号是 <strong>有效的</strong>，我们在“做选择”的时候必须遵守 <strong>两条铁律</strong>（剪枝）：</p>
+<ol>
+<li><strong>左括号的数量 (<code>open</code>)</strong>：只要还没用完 <code>n</code> 个，随时可以加 <code>(</code>。</li>
+<li><strong>右括号的数量 (<code>close</code>)</strong>：这是一个关键限制。
+<ul>
+<li><strong>思考一下：</strong> 在什么情况下，我们才允许放右括号 <code>)</code>？</li>
+<li>是“只要没用完就能放”吗？还是说，必须得先有“欠债”的左括号，才能放右括号？</li>
+</ul>
+</li>
+</ol>
+<p><strong>引导提问：</strong> 如果你现在的字符串是 <code>&quot;())&quot;</code>，你觉得这合法吗？ 显然不合法。 所以，要放右括号 <code>)</code>，必须满足一个条件：当前已经放进去的 <strong>左括号数量 (<code>open</code>)</strong> 必须 **小于 ** 已经放进去的 <strong>右括号数量 (<code>close</code>)</strong></p>
+<p>核心逻辑总结</p>
+<p>我们的回溯函数需要维护两个计数器：</p>
+<ol>
+<li><strong><code>open</code></strong>：已经用了多少个左括号。</li>
+<li><strong><code>close</code></strong>：已经用了多少个右括号。</li>
+</ol>
+<p><strong>决策树的剪枝规则：</strong></p>
+<ul>
+<li><strong>什么时候能加 <code>(</code> ？</strong>
+<ul>
+<li>只要手里的存货没用完，即 <code>open &lt; n</code>，就可以加。</li>
+</ul>
+</li>
+<li><strong>什么时候能加 <code>)</code> ？</strong>
+<ul>
+<li><strong>重点</strong>：必须 <code>close &lt; open</code>（也就是你刚才说的，左边比右边多）时，才能加。</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-python">def generateParenthesis(self, n):
+    open = 0
+    close = 0
+    res = []
+    
+    def backtrack(open, close, path):
+        if len(path) == 2 * n:
+            res.append(path)
+            return
+        if open &lt; n:
+            backtrack(open + 1, close, path + '(')
+        if close &lt; open:
+            backtrack(open, close + 1, path + ')')
+    backtrack(0, 0, &quot;&quot;)
+    return res
+</code></pre>
+<h2 id="33-搜索旋转排序数组">33. 搜索旋转排序数组</h2>
+<figure data-type="image" tabindex="10"><img src="https://Alive-mk.github.io/post-images/1764933316980.png" alt="" loading="lazy"></figure>
+<p>虽然整体不是有序的，但通过观察，你会发现一个<strong>核心规律</strong>： <strong>无论如果你从哪里切分（计算 <code>mid</code>），整个数组一定有一半是“有序”的，另一半是“乱”的。</strong></p>
+<p><strong>引导提问：</strong></p>
+<p>假设 <code>nums = [4, 5, 6, 7, 0, 1, 2]</code>。</p>
+<ol>
+<li>如果我们选中间的 <code>7</code> (<code>mid</code> 指向 <code>7</code>)。
+<ul>
+<li>左边是 <code>[4, 5, 6]</code> (有序)</li>
+<li>右边是 <code>[0, 1, 2]</code> (有序)</li>
+<li>(这个例子比较特殊，两边都有序)</li>
+</ul>
+</li>
+<li>假设 <code>nums = [4, 5, 6, 7, 0, 1, 2]</code>，我们的 <code>mid</code> 算出来指向 <code>6</code>。
+<ul>
+<li><code>nums[0]</code> (4) <strong>小于</strong> <code>nums[mid]</code> (6)。</li>
+<li>这说明：<strong>mid 的左边</strong> (<code>4</code> 到 <code>6</code>) 一定是有序的。</li>
+</ul>
+</li>
+<li>假设 <code>nums = [6, 7, 0, 1, 2, 4, 5]</code>，我们的 <code>mid</code> 算出来指向 <code>1</code>。
+<ul>
+<li><code>nums[0]</code> (6) <strong>大于</strong> <code>nums[mid]</code> (1)。</li>
+<li>这说明：<strong>mid 的左边</strong> 是乱的（因为出现了断崖），反过来，<strong>mid 的右边</strong> (<code>1</code> 到 <code>5</code>) 一定是有序的。</li>
+</ul>
+</li>
+</ol>
+<p><strong>结论：</strong> 通过比较 <code>nums[0]</code> 和 <code>nums[mid]</code> 的大小，我们就能判断 <strong>哪一边是有序的</strong>。</p>
+<ul>
+<li>如果 <code>nums[0] &lt;= nums[mid]</code>：<strong>左半边有序</strong>。</li>
+<li>如果 <code>nums[0] &gt; nums[mid]</code>：<strong>右半边有序</strong>。</li>
+</ul>
+<p><strong>只要确定了哪边有序，我们就可以判断 <code>target</code> 是不是在那个有序的区间里！</strong></p>
+<p><strong>逻辑演练</strong></p>
+<p><strong>Case 1: 左半边有序</strong> 假设 <code>nums = [4, 5, 6, 7, 0, 1, 2]</code>, <code>mid</code> 指向 <code>6</code>, <code>target</code> 是 <code>5</code>。</p>
+<ul>
+<li>判断：<code>nums[0] (4) &lt;= nums[mid] (6)</code> -&gt; <strong>左边有序</strong> (<code>[4, 5, 6]</code>)。</li>
+<li>检查 <code>target</code>：<code>5</code> 在 <code>4</code> 和 <code>6</code> 之间吗？(<code>4 &lt;= 5 &lt; 6</code>)
+<ul>
+<li><strong>在！</strong> 那我们只需要去左边找 (<code>right = mid - 1</code>)。</li>
+<li><strong>不在！</strong> 那肯定在右边那堆乱的里面 (<code>left = mid + 1</code>)。</li>
+</ul>
+</li>
+</ul>
+<p><strong>Case 2: 右半边有序</strong> 假设 <code>nums = [6, 7, 0, 1, 2, 4, 5]</code>, <code>mid</code> 指向 <code>1</code>, <code>target</code> 是 <code>4</code>。</p>
+<ul>
+<li>判断：<code>nums[0] (6) &gt; nums[mid] (1)</code> -&gt; <strong>右边有序</strong> (<code>[1, 2, 4, 5]</code>)。</li>
+<li>检查 <code>target</code>：<code>4</code> 在 <code>1</code> 和 <code>5</code> 之间吗？(<code>1 &lt; 4 &lt;= 5</code>)
+<ul>
+<li><strong>在！</strong> 去右边找 (<code>left = mid + 1</code>)。</li>
+<li><strong>不在！</strong> 去左边找 (<code>right = mid - 1</code>)。</li>
+</ul>
+</li>
+</ul>
+<p>💡 一个小小的优化建议 (Best Practice)</p>
+<p>虽然你用 <code>nums[0] &lt;= nums[mid]</code> 来判断左半边是否有序在 <strong>本题 (所有数字互不相同)</strong> 中是完全可行的，但在更通用的写法中，通常习惯使用 <strong><code>nums[left]</code></strong> 来代替 <code>nums[0]</code>。</p>
+<p>即：<code>if nums[left] &lt;= nums[mid]:</code></p>
+<p><strong>原因：</strong> 使用 <code>left</code> 指针更符合“关注当前搜索区间 <code>[left, right]</code>”的语义。虽然在这道题里 <code>nums[0]</code> 作为全局锚点效果一样，但养成使用 <code>nums[left]</code> 的习惯，能让你在处理<strong>含有重复数字</strong>的旋转数组（如 LeetCode 81 题）时更容易迁移思路。</p>
+<pre><code class="language-python">def search(self, nums, target):
+    if not nums:
+        return -1
+    left, right = 0, len(nums) - 1
+    
+    while left &lt;= right: ### 常规二分查找的循环条件
+        mid = (left + right) // 2
+        if nums[mid] == target:
+            return mid
+        if nums[left] &lt;= nums[mid]:
+            if nums[left] &lt;= target &lt; nums[mid]:
+                right = mid - 1
+            else:
+                left = left + 1
+        else:
+            if nums[mid] &lt;= target &lt;= nums[right]:
+                left = left + 1
+            else:
+                right = right - 1
+    
+    return -1
+    
+</code></pre>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E4%B8%A4%E6%95%B0%E4%B9%8B%E5%92%8C">1. 两数之和</a></li>
+<li><a href="#11-%E7%9B%9B%E6%9C%80%E5%A4%9A%E6%B0%B4%E7%9A%84%E5%AE%B9%E5%99%A8">11. 盛最多水的容器</a></li>
+<li><a href="#15-%E4%B8%89%E6%95%B0%E4%B9%8B%E5%92%8C">15. 三数之和</a></li>
+<li><a href="#%E5%8F%8C%E6%8C%87%E9%92%88%E4%B8%8E%E5%93%88%E5%B8%8C%E8%A1%A8%E7%9A%84%E7%90%86%E8%A7%A3%E4%B8%8E%E5%8C%BA%E5%88%86">双指针与哈希表的理解与区分</a>
+<ul>
+<li><a href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%A4%E6%95%B0%E4%B9%8B%E5%92%8C%E9%A6%96%E9%80%89%E5%93%88%E5%B8%8C%E8%A1%A8">为什么“两数之和”首选哈希表？</a></li>
+<li><a href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%89%E6%95%B0%E4%B9%8B%E5%92%8C%E9%A6%96%E9%80%89%E6%8E%92%E5%BA%8F%E5%8F%8C%E6%8C%87%E9%92%88">为什么“三数之和”首选排序+双指针？</a></li>
+<li><a href="#%E7%BB%93%E8%AE%BA">结论</a></li>
+</ul>
+</li>
+<li><a href="#3-%E6%97%A0%E9%87%8D%E5%A4%8D%E7%9A%84%E6%9C%80%E9%95%BF%E5%AD%90%E4%B8%B2">3. 无重复的最长子串</a></li>
+<li><a href="#2-%E4%B8%A4%E6%95%B0%E7%9B%B8%E5%8A%A0">2. 两数相加</a></li>
+<li><a href="#5-%E6%9C%80%E9%95%BF%E5%9B%9E%E6%96%87%E5%AD%90%E4%B8%B2">5. 最长回文子串</a></li>
+<li><a href="#17-%E7%94%B5%E8%AF%9D%E5%8F%B7%E7%A0%81%E7%9A%84%E5%AD%97%E6%AF%8D%E7%BB%84%E5%90%88">17. 电话号码的字母组合</a></li>
+<li><a href="#20-%E6%9C%89%E6%95%88%E7%9A%84%E6%8B%AC%E5%8F%B7">20. 有效的括号</a></li>
+<li><a href="#21-%E5%90%88%E5%B9%B6%E4%B8%A4%E4%B8%AA%E6%9C%89%E5%BA%8F%E9%93%BE%E8%A1%A8">21. 合并两个有序链表</a></li>
+<li><a href="#22-%E6%8B%AC%E5%8F%B7%E7%94%9F%E6%88%90">22. 括号生成</a></li>
+<li><a href="#33-%E6%90%9C%E7%B4%A2%E6%97%8B%E8%BD%AC%E6%8E%92%E5%BA%8F%E6%95%B0%E7%BB%84">33. 搜索旋转排序数组</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://Alive-mk.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
