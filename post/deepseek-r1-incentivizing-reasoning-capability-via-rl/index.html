@@ -1,0 +1,807 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DeepSeek-R1 (Incentivizing Reasoning Capability via RL) | Alive-mk</title>
+<link rel="shortcut icon" href="https://Alive-mk.github.io/favicon.ico?v=1770951170092">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://Alive-mk.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="DeepSeek-R1 (Incentivizing Reasoning Capability via RL) | Alive-mk - Atom Feed" href="https://Alive-mk.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="1. 核心概念与论文溯源 (Concept &amp; Paper Roots)
+论文引用
+
+核心论文：&quot;DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Re..." />
+    <meta name="keywords" content="实习" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://Alive-mk.github.io">
+  <img class="avatar" src="https://Alive-mk.github.io/images/avatar.png?v=1770951170092" alt="">
+  </a>
+  <h1 class="site-title">
+    Alive-mk
+  </h1>
+  <p class="site-description">
+    温故而知新
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              DeepSeek-R1 (Incentivizing Reasoning Capability via RL)
+            </h2>
+            <div class="post-info">
+              <span>
+                2026-02-08
+              </span>
+              <span>
+                32 min read
+              </span>
+              
+                <a href="https://Alive-mk.github.io/tag/pt1Ejsp1Pa/" class="post-tag">
+                  # 实习
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <h3 id="1-核心概念与论文溯源-concept-paper-roots">1. 核心概念与论文溯源 (Concept &amp; Paper Roots)</h3>
+<h4 id="论文引用"><strong>论文引用</strong></h4>
+<ul>
+<li><strong>核心论文</strong>：<strong>&quot;DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning&quot;</strong> (DeepSeek-AI, 2025)</li>
+<li><strong>链接</strong>：<a href="https://arxiv.org/abs/2501.12948">arXiv:2501.12948</a></li>
+<li><strong>前置关联</strong>：DeepSeek-V3 (MoE架构基础), PPO (Proximal Policy Optimization)</li>
+</ul>
+<h4 id="本质概括"><strong>本质概括</strong></h4>
+<p>DeepSeek-R1 的本质是 <strong>基于结果奖励（Outcome Reward）的大规模强化学习</strong>，通过 <strong>GRPO (Group Relative Policy Optimization)</strong> 算法，在没有中间过程监督的情况下，迫使模型通过试错（Trial and Error）演化出自我验证和长链条推理能力。</p>
+<h4 id="痛点解决-vs-baseline"><strong>痛点解决 (vs Baseline)</strong></h4>
+<ul>
+<li><strong>解决数据瓶颈</strong>：传统的 CoT 训练依赖大量高质量的人工/合成 SFT 数据（如 OpenAI o1 可能依赖昂贵的 PRM 标注）。R1 证明了<strong>仅靠 Rule-Based Reward（最终答案对不对）</strong> 就能激发推理，大幅降低了对 Process Reward Model (PRM) 和人工标注的依赖。</li>
+<li><strong>降低训练成本 (GRPO)</strong>：传统的 PPO 需要一个与 Policy 模型等大的 Value Model (Critic) 来估计价值，显存占用极大。R1 提出的 GRPO <strong>摒弃了 Critic 模型</strong>，直接利用组内（Group）采样的相对优势来更新策略，显著降低了 RL 的计算资源门槛。</li>
+<li><strong>解决“幻觉”与“死记硬背”</strong>：SFT 容易让模型拟合数据的表面分布，而 RL 迫使模型在推理空间中搜索真正的逻辑路径，从而产生了 DeepSeek-R1-Zero 中的 <strong>&quot;Aha Moment&quot;</strong>（模型在长考中突然学会了通过自我反思来纠正错误）。</li>
+</ul>
+<hr>
+<h3 id="2-数学原理与推导-mathematical-underpinning">2. 数学原理与推导 (Mathematical Underpinning)</h3>
+<p>DeepSeek-R1 的核心数学创新在于 <strong>GRPO</strong>。面试中必须能推导它如何替代传统 PPO 的 Advantage Function。</p>
+<h4 id="核心公式grpo-目标函数"><strong>核心公式：GRPO 目标函数</strong></h4>
+<p>GRPO 的目标是最大化以下目标函数：</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>J</mi><mrow><mi>G</mi><mi>R</mi><mi>P</mi><mi>O</mi></mrow></msub><mo>(</mo><mi>θ</mi><mo>)</mo><mo>=</mo><msub><mi mathvariant="double-struck">E</mi><mrow><mi>q</mi><mo>∼</mo><mi>P</mi><mo>(</mo><mi>Q</mi><mo>)</mo><mo separator="true">,</mo><mo>{</mo><msub><mi>o</mi><mi>i</mi></msub><msubsup><mo>}</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>G</mi></msubsup><mo>∼</mo><msub><mi>π</mi><msub><mi>θ</mi><mrow><mi>o</mi><mi>l</mi><mi>d</mi></mrow></msub></msub><mo>(</mo><mi>O</mi><mi mathvariant="normal">∣</mi><mi>q</mi><mo>)</mo></mrow></msub><mrow><mo fence="true">[</mo><mfrac><mn>1</mn><mi>G</mi></mfrac><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>G</mi></munderover><mrow><mo fence="true">(</mo><mi>min</mi><mo>⁡</mo><mrow><mo fence="true">(</mo><msub><mi>r</mi><mi>i</mi></msub><msub><mi>A</mi><mi>i</mi></msub><mo separator="true">,</mo><mtext>clip</mtext><mo>(</mo><msub><mi>r</mi><mi>i</mi></msub><mo separator="true">,</mo><mn>1</mn><mo>−</mo><mi>ϵ</mi><mo separator="true">,</mo><mn>1</mn><mo>+</mo><mi>ϵ</mi><mo>)</mo><msub><mi>A</mi><mi>i</mi></msub><mo fence="true">)</mo></mrow><mo>−</mo><mi>β</mi><msub><mi>D</mi><mrow><mi>K</mi><mi>L</mi></mrow></msub><mo>(</mo><msub><mi>π</mi><mi>θ</mi></msub><mi mathvariant="normal">∣</mi><mi mathvariant="normal">∣</mi><msub><mi>π</mi><mrow><mi>r</mi><mi>e</mi><mi>f</mi></mrow></msub><mo>)</mo><mo fence="true">)</mo></mrow><mo fence="true">]</mo></mrow></mrow><annotation encoding="application/x-tex">J_{GRPO}(\theta) = \mathbb{E}_{q \sim P(Q), \{o_i\}_{i=1}^G \sim \pi_{\theta_{old}}(O|q)} \left[ \frac{1}{G} \sum_{i=1}^G \left( \min \left( r_i A_i, \text{clip}(r_i, 1-\epsilon, 1+\epsilon) A_i \right) - \beta D_{KL}(\pi_\theta || \pi_{ref}) \right) \right]
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.09618em;">J</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.09618em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">G</span><span class="mord mathdefault mtight" style="margin-right:0.00773em;">R</span><span class="mord mathdefault mtight" style="margin-right:0.13889em;">P</span><span class="mord mathdefault mtight" style="margin-right:0.02778em;">O</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.02778em;">θ</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:3.106005em;vertical-align:-1.277669em;"></span><span class="mord"><span class="mord"><span class="mord mathbb">E</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.4617750000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">q</span><span class="mrel mtight">∼</span><span class="mord mathdefault mtight" style="margin-right:0.13889em;">P</span><span class="mopen mtight">(</span><span class="mord mathdefault mtight">Q</span><span class="mclose mtight">)</span><span class="mpunct mtight">,</span><span class="mopen mtight">{</span><span class="mord mtight"><span class="mord mathdefault mtight">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3280857142857143em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mclose mtight"><span class="mclose mtight">}</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8328928571428571em;"><span style="top:-2.177714285714286em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-2.8448em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathdefault mtight">G</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3222857142857143em;"><span></span></span></span></span></span></span><span class="mrel mtight">∼</span><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.3487714285714287em;margin-left:-0.03588em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3448em;margin-left:-0.02778em;margin-right:0.1em;"><span class="pstrut" style="height:2.69444em;"></span><span class="mord mtight"><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight" style="margin-right:0.01968em;">l</span><span class="mord mathdefault mtight">d</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.34963999999999995em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4009714285714285em;"><span></span></span></span></span></span></span><span class="mopen mtight">(</span><span class="mord mathdefault mtight" style="margin-right:0.02778em;">O</span><span class="mord mtight">∣</span><span class="mord mathdefault mtight" style="margin-right:0.03588em;">q</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5189049999999998em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size4">[</span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.32144em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">G</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8283360000000002em;"><span style="top:-1.872331em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.050005em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3000050000000005em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">G</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.277669em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;">(</span><span class="mop">min</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathdefault">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord text"><span class="mord">clip</span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord mathdefault">ϵ</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord mathdefault">ϵ</span><span class="mclose">)</span><span class="mord"><span class="mord mathdefault">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;">)</span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord mathdefault" style="margin-right:0.05278em;">β</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">D</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.07153em;">K</span><span class="mord mathdefault mtight">L</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mord">∣</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">r</span><span class="mord mathdefault mtight">e</span><span class="mord mathdefault mtight" style="margin-right:0.10764em;">f</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mclose delimcenter" style="top:0em;">)</span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size4">]</span></span></span></span></span></span></span></p>
+<h4 id="变量含义与推导直觉"><strong>变量含义与推导直觉</strong></h4>
+<ul>
+<li>
+<p><strong>Group Sampling (<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi></mrow><annotation encoding="application/x-tex">G</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span></span></span></span>)</strong>: 对于同一个问题 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>q</mi></mrow><annotation encoding="application/x-tex">q</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">q</span></span></span></span>，模型旧策略 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>π</mi><msub><mi>θ</mi><mrow><mi>o</mi><mi>l</mi><mi>d</mi></mrow></msub></msub></mrow><annotation encoding="application/x-tex">\pi_{\theta_{old}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68642em;vertical-align:-0.25586em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999985em;"><span style="top:-2.55em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3487714285714287em;margin-left:-0.02778em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight" style="margin-right:0.01968em;">l</span><span class="mord mathdefault mtight">d</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15122857142857138em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.25586em;"><span></span></span></span></span></span></span></span></span></span> 采样生成一组输出 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>{</mo><msub><mi>o</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>o</mi><mn>2</mn></msub><mo separator="true">,</mo><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mo separator="true">,</mo><msub><mi>o</mi><mi>G</mi></msub><mo>}</mo></mrow><annotation encoding="application/x-tex">\{o_1, o_2, ..., o_G\}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">{</span><span class="mord"><span class="mord mathdefault">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">.</span><span class="mord">.</span><span class="mord">.</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">G</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">}</span></span></span></span>。</p>
+</li>
+<li>
+<p><strong>Advantage (<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>A</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">A_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>)</strong>: 这是 GRPO 的精髓。它<strong>不需要 Critic 模型</strong>来预测 Baseline <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>V</mi><mo>(</mo><mi>s</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">V(s)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mopen">(</span><span class="mord mathdefault">s</span><span class="mclose">)</span></span></span></span>，而是使用该组输出的奖励均值作为 Baseline。</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>A</mi><mi>i</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>R</mi><mi>i</mi></msub><mo>−</mo><mtext>mean</mtext><mo>(</mo><mo>{</mo><msub><mi>R</mi><mn>1</mn></msub><mo separator="true">,</mo><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mo separator="true">,</mo><msub><mi>R</mi><mi>G</mi></msub><mo>}</mo><mo>)</mo></mrow><mrow><mtext>std</mtext><mo>(</mo><mo>{</mo><msub><mi>R</mi><mn>1</mn></msub><mo separator="true">,</mo><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mo separator="true">,</mo><msub><mi>R</mi><mi>G</mi></msub><mo>}</mo><mo>)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">A_i = \frac{R_i - \text{mean}(\{R_1, ..., R_G\})}{\text{std}(\{R_1, ..., R_G\})}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.363em;vertical-align:-0.936em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">std</span></span><span class="mopen">(</span><span class="mopen">{</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.00773em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">.</span><span class="mord">.</span><span class="mord">.</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.00773em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">G</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">}</span><span class="mclose">)</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.00773em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord text"><span class="mord">mean</span></span><span class="mopen">(</span><span class="mopen">{</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.00773em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">.</span><span class="mord">.</span><span class="mord">.</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.00773em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">G</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">}</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<p><em>直觉</em>：如果第 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathdefault">i</span></span></span></span> 个输出的奖励 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>R</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">R_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.00773em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 高于这组输出的平均水平，则 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>A</mi><mi>i</mi></msub><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">A_i &gt; 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>，模型会被鼓励增加生成该输出的概率。</p>
+</li>
+<li>
+<p><strong>KL Divergence (<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>D</mi><mrow><mi>K</mi><mi>L</mi></mrow></msub></mrow><annotation encoding="application/x-tex">D_{KL}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">D</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.07153em;">K</span><span class="mord mathdefault mtight">L</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>)</strong>: 防止模型更新步幅过大，偏离 Reference Model（通常是 SFT 后的模型）太远，导致语言崩坏（Language Collapse）。</p>
+</li>
+<li>
+<p><strong>Reward (<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>R</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">R_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.00773em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>)</strong>: 在 DeepSeek-R1-Zero 中，奖励主要由两部分组成：</p>
+<ol>
+<li><strong>Accuracy Reward</strong>: 最终答案通过编译器或规则验证是否正确。</li>
+<li><strong>Format Reward</strong>: 输出是否符合 <code>&lt;think&gt;...&lt;/think&gt;&lt;answer&gt;...&lt;/answer&gt;</code> 的格式。</li>
+</ol>
+</li>
+</ul>
+<blockquote>
+<p>这是一个非常硬核且核心的面试考点。DeepSeek-R1 之所以能在大模型训练上取得突破，核心就在于用更低的成本（去掉 Critic）实现了更有效的强化学习探索。</p>
+<p>以下我将分两个层面为你解答：首先是<strong>学术界视角的深度数学解析</strong>，严格推导其如何取代 PPO；然后是<strong>通俗易懂的直觉解释</strong>，助你快速建立心智模型。</p>
+<hr>
+<h3 id="第一部分学术深度解析-academic-deep-dive">第一部分：学术深度解析 (Academic Deep Dive)</h3>
+<p>在标准的 PPO (Proximal Policy Optimization) 中，我们依赖 <strong>Actor-Critic</strong> 架构。</p>
+<ul>
+<li><strong>Actor (<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>π</mi><mi>θ</mi></msub></mrow><annotation encoding="application/x-tex">\pi_\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>)</strong>: 负责生成动作（Token）。</li>
+<li><strong>Critic (<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>V</mi><mi>ϕ</mi></msub></mrow><annotation encoding="application/x-tex">V_\phi</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">ϕ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span>)</strong>: 负责估计当前状态的价值 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>V</mi><mo>(</mo><mi>s</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">V(s)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mopen">(</span><span class="mord mathdefault">s</span><span class="mclose">)</span></span></span></span>，用于计算优势函数 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>A</mi><mo>(</mo><mi>s</mi><mo separator="true">,</mo><mi>a</mi><mo>)</mo><mo>=</mo><mi>Q</mi><mo>(</mo><mi>s</mi><mo separator="true">,</mo><mi>a</mi><mo>)</mo><mo>−</mo><mi>V</mi><mo>(</mo><mi>s</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">A(s,a) = Q(s,a) - V(s)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">A</span><span class="mopen">(</span><span class="mord mathdefault">s</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">a</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">Q</span><span class="mopen">(</span><span class="mord mathdefault">s</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">a</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mopen">(</span><span class="mord mathdefault">s</span><span class="mclose">)</span></span></span></span>。</li>
+</ul>
+<p><strong>痛点</strong>：在训练 70B+ 甚至 600B 参数的大模型时，Critic 模型通常需要和 Actor 模型一样大。这意味着显存消耗翻倍，且训练时的通信开销巨大。</p>
+<p><strong>GRPO (Group Relative Policy Optimization)</strong> 的核心创新在于：<strong>利用群体采样的统计特征直接作为 Baseline，从而移除了 Critic 模型。</strong></p>
+<h4 id="1-核心公式拆解">1. 核心公式拆解</h4>
+<p>你提供的公式是 GRPO 的目标函数 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>J</mi><mrow><mi>G</mi><mi>R</mi><mi>P</mi><mi>O</mi></mrow></msub></mrow><annotation encoding="application/x-tex">J_{GRPO}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.09618em;">J</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.09618em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">G</span><span class="mord mathdefault mtight" style="margin-right:0.00773em;">R</span><span class="mord mathdefault mtight" style="margin-right:0.13889em;">P</span><span class="mord mathdefault mtight" style="margin-right:0.02778em;">O</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>。我们需要明确其中 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>r</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">r_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 的定义，在 PPO 语境下，它通常代表<strong>概率比率 (Probability Ratio)</strong>，而非 Reward。</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>J</mi><mrow><mi>G</mi><mi>R</mi><mi>P</mi><mi>O</mi></mrow></msub><mo>(</mo><mi>θ</mi><mo>)</mo><mo>=</mo><msub><mi mathvariant="double-struck">E</mi><mrow><mi>q</mi><mo>∼</mo><mi>P</mi><mo>(</mo><mi>Q</mi><mo>)</mo><mo separator="true">,</mo><mo>{</mo><msub><mi>o</mi><mi>i</mi></msub><msubsup><mo>}</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>G</mi></msubsup><mo>∼</mo><msub><mi>π</mi><msub><mi>θ</mi><mrow><mi>o</mi><mi>l</mi><mi>d</mi></mrow></msub></msub><mo>(</mo><mi>O</mi><mi mathvariant="normal">∣</mi><mi>q</mi><mo>)</mo></mrow></msub><mrow><mo fence="true">[</mo><mfrac><mn>1</mn><mi>G</mi></mfrac><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>G</mi></munderover><mrow><mo fence="true">(</mo><munder><munder><mrow><mi>min</mi><mo>⁡</mo><mrow><mo fence="true">(</mo><msub><mi>ρ</mi><mi>i</mi></msub><msub><mi>A</mi><mi>i</mi></msub><mo separator="true">,</mo><mtext>clip</mtext><mo>(</mo><msub><mi>ρ</mi><mi>i</mi></msub><mo separator="true">,</mo><mn>1</mn><mo>−</mo><mi>ϵ</mi><mo separator="true">,</mo><mn>1</mn><mo>+</mo><mi>ϵ</mi><mo>)</mo><msub><mi>A</mi><mi>i</mi></msub><mo fence="true">)</mo></mrow></mrow><mo stretchy="true">⎵</mo></munder><mtext>PPO Surrogate Loss</mtext></munder><mo>−</mo><munder><munder><mrow><mi>β</mi><msub><mi>D</mi><mrow><mi>K</mi><mi>L</mi></mrow></msub><mo>(</mo><msub><mi>π</mi><mi>θ</mi></msub><mi mathvariant="normal">∣</mi><mi mathvariant="normal">∣</mi><msub><mi>π</mi><mrow><mi>r</mi><mi>e</mi><mi>f</mi></mrow></msub><mo>)</mo></mrow><mo stretchy="true">⎵</mo></munder><mtext>KL Penalty</mtext></munder><mo fence="true">)</mo></mrow><mo fence="true">]</mo></mrow></mrow><annotation encoding="application/x-tex">J_{GRPO}(\theta) = \mathbb{E}_{q \sim P(Q), \{o_i\}_{i=1}^G \sim \pi_{\theta_{old}}(O|q)} \left[ \frac{1}{G} \sum_{i=1}^G \left( \underbrace{\min \left( \rho_i A_i, \text{clip}(\rho_i, 1-\epsilon, 1+\epsilon) A_i \right)}_{\text{PPO Surrogate Loss}} - \underbrace{\beta D_{KL}(\pi_\theta || \pi_{ref})}_{\text{KL Penalty}} \right) \right]
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.09618em;">J</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.09618em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">G</span><span class="mord mathdefault mtight" style="margin-right:0.00773em;">R</span><span class="mord mathdefault mtight" style="margin-right:0.13889em;">P</span><span class="mord mathdefault mtight" style="margin-right:0.02778em;">O</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.02778em;">θ</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:4.20104em;vertical-align:-1.850025em;"></span><span class="mord"><span class="mord"><span class="mord mathbb">E</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.4617750000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">q</span><span class="mrel mtight">∼</span><span class="mord mathdefault mtight" style="margin-right:0.13889em;">P</span><span class="mopen mtight">(</span><span class="mord mathdefault mtight">Q</span><span class="mclose mtight">)</span><span class="mpunct mtight">,</span><span class="mopen mtight">{</span><span class="mord mtight"><span class="mord mathdefault mtight">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3280857142857143em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mclose mtight"><span class="mclose mtight">}</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8328928571428571em;"><span style="top:-2.177714285714286em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-2.8448em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathdefault mtight">G</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3222857142857143em;"><span></span></span></span></span></span></span><span class="mrel mtight">∼</span><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.3487714285714287em;margin-left:-0.03588em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3448em;margin-left:-0.02778em;margin-right:0.1em;"><span class="pstrut" style="height:2.69444em;"></span><span class="mord mtight"><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight" style="margin-right:0.01968em;">l</span><span class="mord mathdefault mtight">d</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.34963999999999995em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4009714285714285em;"><span></span></span></span></span></span></span><span class="mopen mtight">(</span><span class="mord mathdefault mtight" style="margin-right:0.02778em;">O</span><span class="mord mtight">∣</span><span class="mord mathdefault mtight" style="margin-right:0.03588em;">q</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5189049999999998em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner"><span class="mopen"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.351015em;"><span style="top:-1.9499950000000004em;"><span class="pstrut" style="height:3.1550000000000002em;"></span><span class="delimsizinginner delim-size4"><span>⎣</span></span></span><span style="top:-3.104995em;"><span class="pstrut" style="height:3.1550000000000002em;"></span><span class="delimsizinginner delim-size4"><span>⎢</span></span></span><span style="top:-4.351015em;"><span class="pstrut" style="height:3.1550000000000002em;"></span><span class="delimsizinginner delim-size4"><span>⎡</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.850025em;"><span></span></span></span></span></span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.32144em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">G</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8283360000000002em;"><span style="top:-1.872331em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.050005em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3000050000000005em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">G</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.277669em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner"><span class="mopen"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.3500249999999996em;"><span style="top:-1.9499950000000004em;"><span class="pstrut" style="height:3.1550000000000002em;"></span><span class="delimsizinginner delim-size4"><span>⎝</span></span></span><span style="top:-3.1050050000000002em;"><span class="pstrut" style="height:3.1550000000000002em;"></span><span class="delimsizinginner delim-size4"><span>⎜</span></span></span><span style="top:-4.350025em;"><span class="pstrut" style="height:3.1550000000000002em;"></span><span class="delimsizinginner delim-size4"><span>⎛</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.850025em;"><span></span></span></span></span></span></span><span class="mord munder"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.75em;"><span style="top:-1.4236689999999999em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">PPO Surrogate Loss</span></span></span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord munder"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.75em;"><span class="svg-align" style="top:-2.102em;"><span class="pstrut" style="height:3em;"></span><span class="stretchy" style="height:0.548em;min-width:1.6em;"><span class="brace-left" style="height:0.548em;"><svg width='400em' height='0.548em' viewBox='0 0 400000 548' preserveAspectRatio='xMinYMin slice'><path d='M0 6l6-6h17c12.688 0 19.313.3 20 1 4 4 7.313 8.3 10 13
+ 35.313 51.3 80.813 93.8 136.5 127.5 55.688 33.7 117.188 55.8 184.5 66.5.688
+ 0 2 .3 4 1 18.688 2.7 76 4.3 172 5h399450v120H429l-6-1c-124.688-8-235-61.7
+-331-161C60.687 138.7 32.312 99.3 7 54L0 41V6z'/></svg></span><span class="brace-center" style="height:0.548em;"><svg width='400em' height='0.548em' viewBox='0 0 400000 548' preserveAspectRatio='xMidYMin slice'><path d='M199572 214
+c100.7 8.3 195.3 44 280 108 55.3 42 101.7 93 139 153l9 14c2.7-4 5.7-8.7 9-14
+ 53.3-86.7 123.7-153 211-199 66.7-36 137.3-56.3 212-62h199568v120H200432c-178.3
+ 11.7-311.7 78.3-403 201-6 8-9.7 12-11 12-.7.7-6.7 1-18 1s-17.3-.3-18-1c-1.3 0
+-5-4-11-12-44.7-59.3-101.3-106.3-170-141s-145.3-54.3-229-60H0V214z'/></svg></span><span class="brace-right" style="height:0.548em;"><svg width='400em' height='0.548em' viewBox='0 0 400000 548' preserveAspectRatio='xMaxYMin slice'><path d='M399994 0l6 6v35l-6 11c-56 104-135.3 181.3-238 232-57.3
+ 28.7-117 45-179 50H-300V214h399897c43.3-7 81-15 113-26 100.7-33 179.7-91 237
+-174 2.7-5 6-9 10-13 .7-1 7.3-1 20-1h17z'/></svg></span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mop">min</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;">(</span><span class="mord"><span class="mord mathdefault">ρ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathdefault">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord text"><span class="mord">clip</span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">ρ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord mathdefault">ϵ</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord mathdefault">ϵ</span><span class="mclose">)</span><span class="mord"><span class="mord mathdefault">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.898em;"><span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.712439em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord munder"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.75em;"><span style="top:-1.379784em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">KL Penalty</span></span></span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord munder"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.75em;"><span class="svg-align" style="top:-2.065892em;"><span class="pstrut" style="height:3em;"></span><span class="stretchy" style="height:0.548em;min-width:1.6em;"><span class="brace-left" style="height:0.548em;"><svg width='400em' height='0.548em' viewBox='0 0 400000 548' preserveAspectRatio='xMinYMin slice'><path d='M0 6l6-6h17c12.688 0 19.313.3 20 1 4 4 7.313 8.3 10 13
+ 35.313 51.3 80.813 93.8 136.5 127.5 55.688 33.7 117.188 55.8 184.5 66.5.688
+ 0 2 .3 4 1 18.688 2.7 76 4.3 172 5h399450v120H429l-6-1c-124.688-8-235-61.7
+-331-161C60.687 138.7 32.312 99.3 7 54L0 41V6z'/></svg></span><span class="brace-center" style="height:0.548em;"><svg width='400em' height='0.548em' viewBox='0 0 400000 548' preserveAspectRatio='xMidYMin slice'><path d='M199572 214
+c100.7 8.3 195.3 44 280 108 55.3 42 101.7 93 139 153l9 14c2.7-4 5.7-8.7 9-14
+ 53.3-86.7 123.7-153 211-199 66.7-36 137.3-56.3 212-62h199568v120H200432c-178.3
+ 11.7-311.7 78.3-403 201-6 8-9.7 12-11 12-.7.7-6.7 1-18 1s-17.3-.3-18-1c-1.3 0
+-5-4-11-12-44.7-59.3-101.3-106.3-170-141s-145.3-54.3-229-60H0V214z'/></svg></span><span class="brace-right" style="height:0.548em;"><svg width='400em' height='0.548em' viewBox='0 0 400000 548' preserveAspectRatio='xMaxYMin slice'><path d='M399994 0l6 6v35l-6 11c-56 104-135.3 181.3-238 232-57.3
+ 28.7-117 45-179 50H-300V214h399897c43.3-7 81-15 113-26 100.7-33 179.7-91 237
+-174 2.7-5 6-9 10-13 .7-1 7.3-1 20-1h17z'/></svg></span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05278em;">β</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">D</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.07153em;">K</span><span class="mord mathdefault mtight">L</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mord">∣</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">r</span><span class="mord mathdefault mtight">e</span><span class="mord mathdefault mtight" style="margin-right:0.10764em;">f</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.934108em;"><span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.756324em;"><span></span></span></span></span></span><span class="mclose"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.3500249999999996em;"><span style="top:-1.9499950000000004em;"><span class="pstrut" style="height:3.1550000000000002em;"></span><span class="delimsizinginner delim-size4"><span>⎠</span></span></span><span style="top:-3.1050050000000002em;"><span class="pstrut" style="height:3.1550000000000002em;"></span><span class="delimsizinginner delim-size4"><span>⎟</span></span></span><span style="top:-4.350025em;"><span class="pstrut" style="height:3.1550000000000002em;"></span><span class="delimsizinginner delim-size4"><span>⎞</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.850025em;"><span></span></span></span></span></span></span></span><span class="mclose"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.351015em;"><span style="top:-1.9499950000000004em;"><span class="pstrut" style="height:3.1550000000000002em;"></span><span class="delimsizinginner delim-size4"><span>⎦</span></span></span><span style="top:-3.104995em;"><span class="pstrut" style="height:3.1550000000000002em;"></span><span class="delimsizinginner delim-size4"><span>⎥</span></span></span><span style="top:-4.351015em;"><span class="pstrut" style="height:3.1550000000000002em;"></span><span class="delimsizinginner delim-size4"><span>⎤</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.850025em;"><span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p>为了严谨，我们将公式中的变量进行标准化定义：</p>
+<ul>
+<li>
+<p><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>ρ</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\rho_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathdefault">ρ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (Probability Ratio)</strong>:</p>
+<p>这是当前策略与旧策略生成第 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathdefault">i</span></span></span></span> 个输出的概率比值。</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>ρ</mi><mi>i</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>π</mi><mi>θ</mi></msub><mo>(</mo><msub><mi>o</mi><mi>i</mi></msub><mi mathvariant="normal">∣</mi><mi>q</mi><mo>)</mo></mrow><mrow><msub><mi>π</mi><msub><mi>θ</mi><mrow><mi>o</mi><mi>l</mi><mi>d</mi></mrow></msub></msub><mo>(</mo><msub><mi>o</mi><mi>i</mi></msub><mi mathvariant="normal">∣</mi><mi>q</mi><mo>)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">\rho_i = \frac{\pi_\theta(o_i|q)}{\pi_{\theta_{old}}(o_i|q)}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathdefault">ρ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.36886em;vertical-align:-0.94186em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999985em;"><span style="top:-2.55em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3487714285714287em;margin-left:-0.02778em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight" style="margin-right:0.01968em;">l</span><span class="mord mathdefault mtight">d</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15122857142857138em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.25586em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.03588em;">q</span><span class="mclose">)</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.03588em;">q</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.94186em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<ul>
+<li>当 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>ρ</mi><mi>i</mi></msub><mo>&gt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\rho_i &gt; 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7335400000000001em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathdefault">ρ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> 时，说明新策略生成该输出的概率增加了。</li>
+</ul>
+</li>
+<li>
+<p><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>A</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">A_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (Group Advantage)</strong>:</p>
+<p>这是 GRPO 替代 Critic 的关键。对于输入问题 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>q</mi></mrow><annotation encoding="application/x-tex">q</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">q</span></span></span></span>，旧策略 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>π</mi><msub><mi>θ</mi><mrow><mi>o</mi><mi>l</mi><mi>d</mi></mrow></msub></msub></mrow><annotation encoding="application/x-tex">\pi_{\theta_{old}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68642em;vertical-align:-0.25586em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999985em;"><span style="top:-2.55em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3487714285714287em;margin-left:-0.02778em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight" style="margin-right:0.01968em;">l</span><span class="mord mathdefault mtight">d</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15122857142857138em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.25586em;"><span></span></span></span></span></span></span></span></span></span> 采样生成了一组输出 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>{</mo><msub><mi>o</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>o</mi><mn>2</mn></msub><mo separator="true">,</mo><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mo separator="true">,</mo><msub><mi>o</mi><mi>G</mi></msub><mo>}</mo></mrow><annotation encoding="application/x-tex">\{o_1, o_2, ..., o_G\}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">{</span><span class="mord"><span class="mord mathdefault">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">.</span><span class="mord">.</span><span class="mord">.</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">G</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">}</span></span></span></span>（例如 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi><mo>=</mo><mn>64</mn></mrow><annotation encoding="application/x-tex">G=64</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">6</span><span class="mord">4</span></span></span></span>）。每个输出对应一个真实的奖励值 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>R</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">R_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.00773em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>。</p>
+<p>我们通过<strong>组内标准化 (Group Normalization)</strong> 计算优势：</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>A</mi><mi>i</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>R</mi><mi>i</mi></msub><mo>−</mo><mtext>mean</mtext><mo>(</mo><mo>{</mo><msub><mi>R</mi><mn>1</mn></msub><mo separator="true">,</mo><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mo separator="true">,</mo><msub><mi>R</mi><mi>G</mi></msub><mo>}</mo><mo>)</mo></mrow><mrow><mtext>std</mtext><mo>(</mo><mo>{</mo><msub><mi>R</mi><mn>1</mn></msub><mo separator="true">,</mo><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mo separator="true">,</mo><msub><mi>R</mi><mi>G</mi></msub><mo>}</mo><mo>)</mo><mo>+</mo><mi>ϵ</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">A_i = \frac{R_i - \text{mean}(\{R_1, ..., R_G\})}{\text{std}(\{R_1, ..., R_G\}) + \epsilon}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.363em;vertical-align:-0.936em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">std</span></span><span class="mopen">(</span><span class="mopen">{</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.00773em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">.</span><span class="mord">.</span><span class="mord">.</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.00773em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">G</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">}</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord mathdefault">ϵ</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.00773em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord text"><span class="mord">mean</span></span><span class="mopen">(</span><span class="mopen">{</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.00773em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">.</span><span class="mord">.</span><span class="mord">.</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.00773em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">G</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">}</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<ul>
+<li><strong>数学本质</strong>：这是一个 <strong>Baseline Subtraction</strong> 技巧。</li>
+<li>在传统 RL 中，我们用 Critic 预测的 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>V</mi><mo>(</mo><mi>s</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">V(s)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mopen">(</span><span class="mord mathdefault">s</span><span class="mclose">)</span></span></span></span> 作为 Baseline。</li>
+<li>在 GRPO 中，我们用<strong>当前这组样本的平均奖励</strong>作为 Baseline。</li>
+<li><strong>效果</strong>：如果 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>R</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">R_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.00773em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 大于平均值，则 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>A</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">A_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 为正，梯度下降会鼓励模型<strong>增加</strong>生成该路径的概率；反之则抑制。这在数学上大幅降低了梯度的方差（Variance Reduction）。</li>
+</ul>
+</li>
+<li>
+<p><strong>Clip 操作</strong>:</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mtext>clip</mtext><mo>(</mo><msub><mi>ρ</mi><mi>i</mi></msub><mo separator="true">,</mo><mn>1</mn><mo>−</mo><mi>ϵ</mi><mo separator="true">,</mo><mn>1</mn><mo>+</mo><mi>ϵ</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">\text{clip}(\rho_i, 1-\epsilon, 1+\epsilon)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">clip</span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">ρ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.8388800000000001em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">ϵ</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">ϵ</span><span class="mclose">)</span></span></span></span></span></p>
+<p>这是 PPO 的遗产。它限制了 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>π</mi><mi>θ</mi></msub></mrow><annotation encoding="application/x-tex">\pi_\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 更新的步幅，防止因为一次采样的 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>A</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">A_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 过大导致策略更新过猛，从而破坏了训练的稳定性。</p>
+</li>
+</ul>
+<h4 id="2-为什么不再需要-critic">2. 为什么不再需要 Critic？</h4>
+<p>在 PPO 中，Critic 的作用是告诉 Actor：“你这一步做得比<strong>预期的平均水平</strong>好还是坏？”</p>
+<p>GRPO 转换了思路：既然我一次生成了 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi></mrow><annotation encoding="application/x-tex">G</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span></span></span></span> 个结果，那么这 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi></mrow><annotation encoding="application/x-tex">G</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span></span></span></span> 个结果的<strong>平均分</strong>本身就是当前策略的一个无偏估计（Monte Carlo Estimate）。</p>
+<ul>
+<li>
+<p>比平均分高的，就是好动作。</p>
+</li>
+<li>
+<p>比平均分低的，就是差动作。</p>
+<p>这种<strong>相对优劣 (Relative Comparison)</strong> 的信息完全足以指导策略梯度更新，因此 Critic 变得多余。</p>
+</li>
+</ul>
+<hr>
+<h3 id="第二部分通俗直觉解释-laymans-explanation">第二部分：通俗直觉解释 (Layman's Explanation)</h3>
+<p>如果上面的数学太抽象，你可以用这个“考试隐喻”来理解 GRPO 是如何工作的。</p>
+<h4 id="场景老师环境训练学生模型做奥数题">场景：老师（环境）训练学生（模型）做奥数题</h4>
+<p><strong>1. 传统 PPO (Actor-Critic) —— &quot;昂贵的私教模式&quot;</strong></p>
+<ul>
+<li><strong>学生 (Actor)</strong>：做一道题，写出一个答案。</li>
+<li><strong>私教 (Critic)</strong>：在学生写之前，私教先预测：“这题很难，我猜你平时水平只能拿 60 分”。</li>
+<li><strong>评分</strong>：
+<ul>
+<li>如果学生实际考了 80 分。</li>
+<li><strong>优势 (Advantage)</strong> = 80 - 60 = +20。</li>
+<li>老师说：“你比私教预测的要好，给你奖励，记住这次的做法！”</li>
+</ul>
+</li>
+<li><strong>代价</strong>：你需要花重金（显存）请一个和学生水平相当的私教，而且私教不仅要准，还要跟着学生一起进步，很难训练。</li>
+</ul>
+<p><strong>2. GRPO (Group Relative) —— &quot;影分身内卷模式&quot;</strong></p>
+<ul>
+<li><strong>学生 (Actor)</strong>：遇到一道题，使出“影分身之术”，变出 64 个分身，每个分身写一个答案（Group Sampling）。</li>
+<li><strong>评分 (Group Normalization)</strong>：
+<ul>
+<li>老师不需要私教。老师把这 64 个卷子收上来，算了一个平均分，假设是 60 分。</li>
+<li><strong>分身 A</strong> 考了 90 分。老师说：“你比你们这帮分身的平均水平高很多（<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>A</mi><mi>i</mi></msub><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">A_i &gt; 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>），本体以后要多像分身 A 学习！”</li>
+<li><strong>分身 B</strong> 考了 30 分。老师说：“你拉低了平均分（<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>A</mi><mi>i</mi></msub><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">A_i &lt; 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>），本体以后要避免像分身 B 这样思考。”</li>
+</ul>
+</li>
+<li><strong>核心优势</strong>：
+<ul>
+<li><strong>省钱</strong>：不需要请私教（Critic 模型被砍掉了）。</li>
+<li><strong>效果好</strong>：这是“自己和自己比”。只要这一组尝试里有一个灵光一现（Aha Moment），模型就能捕捉到那个高分路径，并强化它。</li>
+</ul>
+</li>
+</ul>
+<h3 id="总结-takeaway">总结 (Takeaway)</h3>
+<p>DeepSeek-R1 的 GRPO 是<strong>暴力美学与统计学的结合</strong>。它不再纠结于“精准预测每一个状态的价值”（那是 Critic 做的事），而是直接通过<strong>大规模采样</strong>和<strong>组内竞争</strong>，让模型在不断的自我博弈中涌现出推理能力。</p>
+<p>这就是为什么它能通过<strong>纯强化学习 (Pure RL)</strong> 激发推理能力，而不需要大量人工标注的中间过程数据的根本原因。</p>
+</blockquote>
+<hr>
+<h3 id="3-手撕代码重点与实现-whiteboard-coding-focus">3. 手撕代码重点与实现 (Whiteboard Coding Focus)</h3>
+<p>在面试中，模拟 DeepSeek-R1 的环境通常侧重于 <strong>GRPO Loss 的计算</strong> 或 <strong>Reward Function 的设计</strong>。</p>
+<h4 id="核心逻辑-必须死记"><strong>核心逻辑 (必须死记)</strong></h4>
+<ol>
+<li><strong>Group Sampling</strong>: 一个 Query 必须生成多个 Output。</li>
+<li><strong>Advantage Calculation</strong>: 计算组内 Z-Score (标准化)，<strong>没有 Critic 网络参与</strong>。</li>
+<li><strong>KL Penalty</strong>: 计算当前 Policy 和 Reference Policy 的 KL 散度。</li>
+</ol>
+<h4 id="代码展示-pytorch-实现-grpo-loss"><strong>代码展示 (PyTorch 实现 GRPO Loss)</strong></h4>
+<pre><code>import torch
+import torch.nn.functional as F
+
+def compute_grpo_loss(
+    policy_log_probs,   # 当前策略的 Log 概率 [Batch, Group, Seq_Len]
+    ref_log_probs,      # 参考策略的 Log 概率 [Batch, Group, Seq_Len]
+    rewards,            # 每个输出的最终奖励 [Batch, Group]
+    beta=0.04,          # KL 惩罚系数
+    epsilon=0.2         # PPO Clip 系数
+):
+    &quot;&quot;&quot;
+    核心：手写 GRPO Loss，不依赖 Critic 模型
+    &quot;&quot;&quot;
+    # 1. 计算 Advantage (Group Relative)
+    # 重点：在 Group 维度上做归一化 (Z-Score)
+    mean_rewards = rewards.mean(dim=1, keepdim=True)
+    std_rewards = rewards.std(dim=1, keepdim=True) + 1e-8
+    advantages = (rewards - mean_rewards) / std_rewards # [Batch, Group]
+
+    # 2. 计算 Ratio (Importance Sampling)
+    # log(a/b) = log(a) - log(b) =&gt; a/b = exp(log(a) - log(b))
+    # Sum over sequence length to get total log prob for the trajectory
+    current_seq_log_prob = policy_log_probs.sum(dim=2) 
+    ref_seq_log_prob = ref_log_probs.sum(dim=2)
+    
+    # 这里的 ratio 计算通常是针对 token-level 的，为了简化，这里展示 trajectory-level 的概念
+    # 在实际 token-level 实现中，advantage 会广播到每个 token
+    ratio = torch.exp(policy_log_probs - policy_log_probs.detach()) 
+
+    # 3. 计算 KL Divergence (Per token approximation)
+    # approx_kl = exp(ref_log - policy_log) - ... (简化写法，通常用 library)
+    # 简单实现：D_KL = policy_log - ref_log
+    kl_div = policy_log_probs - ref_log_probs
+    
+    # 4. PPO Clipping Logic (Standard PPO approach applied with Group Advantage)
+    # 注意：Advantage 需要广播维度以匹配 token 序列
+    adv_expanded = advantages.unsqueeze(-1).expand_as(ratio)
+    
+    surr1 = ratio * adv_expanded
+    surr2 = torch.clamp(ratio, 1 - epsilon, 1 + epsilon) * adv_expanded
+    
+    # 5. Final Loss
+    # Loss = - (PPO_Objective - Beta * KL)
+    loss = - (torch.min(surr1, surr2) - beta * kl_div).mean()
+    
+    return loss
+
+# 模拟：验证模型是否学会思考
+# 这是一个极其简化的 Reward Function 示例
+def verify_reward(decoded_text, ground_truth):
+    &quot;&quot;&quot;
+    R1-Zero 的核心：只看结果，不看过程
+    &quot;&quot;&quot;
+    score = 0.0
+    # 格式奖励
+    if &quot;&lt;think&gt;&quot; in decoded_text and &quot;&lt;/think&gt;&quot; in decoded_text:
+        score += 0.1
+    
+    # 结果奖励
+    # 假设 ground_truth 是 &quot;42&quot;，我们解析 output 最后的数字
+    answer = extract_answer(decoded_text) # 需要实现解析逻辑
+    if answer == ground_truth:
+        score += 1.0
+        
+    return score
+</code></pre>
+<h4 id="工程细节"><strong>工程细节</strong></h4>
+<ul>
+<li><strong>Numerical Stability</strong>: 在计算 Advantage 除以 std 时，务必加一个极小值 <code>1e-8</code> 防止除零。</li>
+<li><strong>Token-Level vs Sequence-Level</strong>: 虽然 Reward 是整句给的，但 Advantage 通常会分配给该句生成的每一个 Token（除了 Padding）。</li>
+<li><strong>Reference Model Freeze</strong>: 训练过程中 Reference Model 是冻结的，为了节省显存，可以对其进行量化或卸载（Offload）。</li>
+</ul>
+<hr>
+<h3 id="4-面试高频考察点-interview-checkpoints">4. 面试高频考察点 (Interview Checkpoints)</h3>
+<h4 id="q1-为什么-r1-zero-阶段不使用-sft-数据cold-start直接进行-rl有什么后果"><strong>Q1: 为什么 R1-Zero 阶段不使用 SFT 数据（Cold Start）直接进行 RL？有什么后果？</strong></h4>
+<ul>
+<li><strong>满分回答思路</strong>：
+<ul>
+<li><strong>目的</strong>：为了验证 reasoning 能力是否可以纯粹由 RL 激发（Pure RL）。</li>
+<li><strong>后果</strong>：模型虽然学会了推理（准确率上升），但出现了 <strong>&quot;Language Mixing&quot;（语言混乱）</strong> 和 <strong>不可读性</strong>（思考过程极其冗长且跳跃）。</li>
+<li><strong>改进</strong>：这就是为什么完整的 DeepSeek-R1 引入了 <strong>Cold Start Data</strong>。少量的优质 CoT 数据（几千条）作为 RL 前的 SFT，主要是为了规范输出格式和语言风格，作为 RL 的优良初始点（Prior），而非为了教会推理逻辑。</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>这是一道非常经典的**深度学习训练策略（Training Strategy）<strong>面试题。它考察的不仅仅是你是否读过论文，而是你对</strong>强化学习（RL）本质、对齐（Alignment）以及模型初始化（Initialization）**的深刻理解。</p>
+<p>以下为您拆解这道题的满分回答逻辑。</p>
+<hr>
+<h3 id="第一部分学术深度解析-academic-deep-dive-2">第一部分：学术深度解析 (Academic Deep Dive)</h3>
+<h4 id="1-核心动机探究涌现的独立性-independence-of-emergence">1. 核心动机：探究“涌现”的独立性 (Independence of Emergence)</h4>
+<p>DeepSeek-R1-Zero 的设计初衷是一个科学对照实验。团队希望回答一个根本性的问题：</p>
+<blockquote>
+<p><strong>推理能力（Reasoning）究竟是模型通过模仿人类数据（SFT）学会的，还是可以通过单纯的激励机制（Incentive）自发涌现的？</strong></p>
+</blockquote>
+<p>如果先使用 SFT（Supervised Fine-Tuning）数据进行 Cold Start，那么模型在 RL 阶段表现出的推理能力，很可能是对 SFT 数据的<strong>记忆（Memorization）**或**分布拟合（Distribution Fitting）</strong>。</p>
+<ul>
+<li><strong>如果不加 SFT</strong>：直接从 Base Model 开始 RL，如果模型能解出题，那就证明了 LLM 具备自我演化、自我探索出推理链路的能力。这是对 <strong>Pure RL</strong> 潜力的极限压测。</li>
+</ul>
+<h4 id="2-负面后果奖励欺骗与熵增-reward-hacking-entropy">2. 负面后果：奖励欺骗与熵增 (Reward Hacking &amp; Entropy)</h4>
+<p>在 R1-Zero 阶段，由于 Reward Function 极其简单（通常只看最终答案 accuracy，不看过程 quality），模型为了最大化奖励，走出了“野路子”。这在学术上称为 <strong>Reward Hacking（奖励黑客）</strong> 的一种变体：</p>
+<ul>
+<li><strong>Language Mixing (语言混乱)</strong>：
+<ul>
+<li><strong>现象</strong>：Prompt 是中文，答案是中文，但中间的 <code>&lt;think&gt;</code> 过程却是中英夹杂，甚至出现其他语言。</li>
+<li><strong>原理</strong>：对于 Base Model 而言，某些推理步骤在英文语料中出现的概率更高（Perplexity 更低），或者更容易推导出正确结果。RL 算法（如 GRPO）只在乎结果对不对，不在乎你用什么语言思考。既然用英文思考能拿分，模型就会倾向于用英文，导致语言一致性崩坏。</li>
+</ul>
+</li>
+<li><strong>Unreadability (不可读性)</strong>：
+<ul>
+<li><strong>现象</strong>：思考过程没有换行、逻辑跳跃、包含大量的自我重复或无意义的字符。</li>
+<li><strong>原理</strong>：缺乏 SFT 的<strong>格式约束（Format Constraint）</strong>。在 RL 的探索空间中，一条“格式丑陋但答案正确”的路径，和一条“格式优美且答案正确”的路径，获得的 Reward 是一样的。模型没有动力去优化“可读性”。</li>
+</ul>
+</li>
+</ul>
+<h4 id="3-改进方案cold-start-data-作为先验-prior">3. 改进方案：Cold Start Data 作为先验 (Prior)</h4>
+<p>为了解决上述问题，DeepSeek-R1 引入了少量的 Cold Start Data（几千条高质量 CoT 数据）。</p>
+<ul>
+<li><strong>数学本质：调整 KL 散度的参考点</strong>。
+<ul>
+<li>在 RL 中，我们通常约束 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>D</mi><mrow><mi>K</mi><mi>L</mi></mrow></msub><mo>(</mo><msub><mi>π</mi><mi>θ</mi></msub><mi mathvariant="normal">∣</mi><mi mathvariant="normal">∣</mi><msub><mi>π</mi><mrow><mi>r</mi><mi>e</mi><mi>f</mi></mrow></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">D_{KL}(\pi_\theta || \pi_{ref})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">D</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.07153em;">K</span><span class="mord mathdefault mtight">L</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mord">∣</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">r</span><span class="mord mathdefault mtight">e</span><span class="mord mathdefault mtight" style="margin-right:0.10764em;">f</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>。</li>
+<li><strong>R1-Zero</strong>：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>π</mi><mrow><mi>r</mi><mi>e</mi><mi>f</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\pi_{ref}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.716668em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">r</span><span class="mord mathdefault mtight">e</span><span class="mord mathdefault mtight" style="margin-right:0.10764em;">f</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> 是 Base Model。Base Model 的输出空间是发散的，就像一匹野马。</li>
+<li><strong>R1</strong>：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>π</mi><mrow><mi>r</mi><mi>e</mi><mi>f</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\pi_{ref}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.716668em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">r</span><span class="mord mathdefault mtight">e</span><span class="mord mathdefault mtight" style="margin-right:0.10764em;">f</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> 是 SFT 后的模型。SFT 将模型的输出分布**收敛（Collapse）**到了人类偏好的格式和语言风格上。</li>
+</ul>
+</li>
+<li><strong>作用</strong>：Cold Start Data <strong>不是为了教会模型如何推理</strong>（因为量太少），而是为了<strong>定义搜索空间的边界</strong>。它告诉模型：“你可以自由探索解题路径，但请保持卷面整洁，并使用用户指定的语言。”</li>
+</ul>
+<hr>
+<h3 id="第二部分通俗直觉解释-laymans-explanation-2">第二部分：通俗直觉解释 (Layman's Explanation)</h3>
+<p>如果上面的解释太枯燥，你可以用**“天才野孩子 vs. 学院派学生”**的比喻来回答。</p>
+<h4 id="1-r1-zero放养的天才野孩子">1. R1-Zero：放养的“天才野孩子”</h4>
+<ul>
+<li><strong>场景</strong>：你把一个极具天赋的孩子（Base Model）关在房间里，给他一本奥数习题集，并告诉他：“做对一题给一颗糖（Reward），做错没糖。”但你不教他任何解题格式，也不管他用什么语言写。</li>
+<li><strong>结果</strong>：为了吃到糖，孩子疯狂尝试。
+<ul>
+<li>他可能在草稿纸上画鬼画符。</li>
+<li>他可能一会儿用中文自言自语，一会儿飙英文单词，因为他发现用英文思考某些数学概念更快。</li>
+<li>最后，他在答题卡上填上了正确答案 &quot;42&quot;。</li>
+</ul>
+</li>
+<li><strong>评价</strong>：<strong>能力有了（能做对题），但由于缺乏教养（SFT），行为举止怪异（语言混乱），让人看不懂他的思路。</strong></li>
+</ul>
+<h4 id="2-cold-start-sft也就是通过礼仪课">2. Cold Start (SFT)：也就是“通过礼仪课”</h4>
+<ul>
+<li><strong>改进</strong>：在把孩子关进房间刷题（RL）之前，先让他上一周的“礼仪速成班”（Cold Start SFT）。</li>
+<li><strong>内容</strong>：老师不教复杂的奥数，只教他：“解题时要先写‘解：’，分步骤写，不要中英文夹杂，字迹要工整。”</li>
+<li><strong>结果 (R1)</strong>：孩子学会了规矩。再让他去刷题（RL）时，他依然是靠自己的智力解题，但这次写出来的步骤条理清晰，语言统一，既拿到了糖，也让看卷子的老师（用户）觉得赏心悦目。</li>
+</ul>
+<h3 id="总结-takeaway-2">总结 (Takeaway)</h3>
+<ul>
+<li><strong>R1-Zero</strong> 证明了**智力（Reasoning）**可以由纯激励产生。</li>
+<li><strong>Cold Start Data</strong> 则是为了赋予这份智力以<strong>人类的可读性（Readability）和规范性（Alignment）</strong>。</li>
+<li>先 SFT 再 RL，是为了给强化学习提供一个<strong>良好的初始搜索点（Better Initialization）</strong>。</li>
+</ul>
+</blockquote>
+<h4 id="q2-grpo-相比于-ppo显存节省主要体现在哪里"><strong>Q2: GRPO 相比于 PPO，显存节省主要体现在哪里？</strong></h4>
+<ul>
+<li><strong>满分回答思路</strong>：
+<ul>
+<li>PPO 需要四个模型（或共享参数）：Policy, Old Policy, Value Model (Critic), Reward Model。其中 Critic 网络通常和 Policy 一样大。</li>
+<li>GRPO <strong>完全移除了 Critic Model</strong>。它通过采样一组输出（Group Sampling），利用组内样本的相对优劣来估算 Baseline。这几乎节省了 50% 的参数显存占用，使得大模型的 RL 训练成为可能。</li>
+</ul>
+</li>
+</ul>
+<h4 id="q3-什么是-aha-moment它是如何被观测到的"><strong>Q3: 什么是 &quot;Aha Moment&quot;？它是如何被观测到的？</strong></h4>
+<ul>
+<li><strong>满分回答思路</strong>：
+<ul>
+<li>&quot;Aha Moment&quot; 指的是在 R1-Zero 的训练中期，模型开始自发生成 <strong>Self-Correction（自我纠错）</strong> 的行为。</li>
+<li><strong>具体表现</strong>：模型输出 <code>&lt;think&gt;</code> 标签，开始一段推导，发现错了，然后输出 &quot;Wait, let me re-evaluate...&quot; 并重新尝试。</li>
+<li><strong>来源</strong>：这不是人类教的（SFT 数据里没有），而是 RL 这种“结果导向”的机制逼出来的。只有通过更多的思考和回溯，才能拿到最终的 Reward。</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>这是一个关于**大模型涌现能力（Emergent Ability）**最迷人、也是最具颠覆性的面试题。它触及了 DeepSeek-R1 论文中最核心的发现：<strong>机器的“思考”不再是单纯的模仿，而是为了生存（获得奖励）而进化出的生存策略。</strong></p>
+<p>以下是为您准备的硬核学术解析与通俗解释。</p>
+<hr>
+<h3 id="第一部分学术深度解析-academic-deep-dive-3">第一部分：学术深度解析 (Academic Deep Dive)</h3>
+<h4 id="1-定义非模仿性的自发涌现-non-imitative-emergence">1. 定义：非模仿性的自发涌现 (Non-Imitative Emergence)</h4>
+<p>&quot;Aha Moment&quot; 在 DeepSeek-R1-Zero 的语境下，特指模型在**纯强化学习（Pure RL）**训练的中期，在没有任何人工监督数据（SFT）教它“如何纠错”的情况下，**自发地（Spontaneously）**习得了一种 <strong>Look-ahead Planning（前瞻规划）</strong> 和 <strong>Self-Reflection（自我反思）</strong> 的能力。</p>
+<ul>
+<li><strong>学术定义</strong>：它是 Policy <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>π</mi><mi>θ</mi></msub></mrow><annotation encoding="application/x-tex">\pi_\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 在优化长视程（Long-horizon）奖励函数时，为了逃离局部最优解（Local Minima），通过梯度更新习得的一种**测试时计算（Test-Time Compute）**策略。</li>
+<li><strong>本质</strong>：模型发现，通过延长 <code>&lt;think&gt;</code> 阶段的 Token 序列长度，并在序列中通过自然语言进行假设验证（Hypothesis Testing），可以显著提高最终获得 Reward <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>R</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">R=1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> 的概率。</li>
+</ul>
+<h4 id="2-观测证据轨迹分析-trajectory-analysis">2. 观测证据：轨迹分析 (Trajectory Analysis)</h4>
+<p>DeepSeek 团队通过监控训练过程中的中间检查点（Intermediate Checkpoints），观测到了这种行为的演变：</p>
+<ul>
+<li>
+<p><strong>初期 (Early Stage)</strong>：模型倾向于直接生成答案，或者生成较短的、线性的推理链。如果错了，就是错了。</p>
+</li>
+<li>
+<p><strong>中期 (Middle Stage - The &quot;Aha&quot;)</strong>：</p>
+<ul>
+<li>
+<p><strong>Length Explosion</strong>：<code>&lt;think&gt;</code> 标签内的 Token 数量开始指数级增长。</p>
+</li>
+<li>
+<p><strong>Pattern Shift</strong>：在生成的文本轨迹（Trajectory）中，开始出现特定的<strong>转折性短语（Pivot Phrases）</strong>。</p>
+</li>
+<li>
+<p><strong>Case Study</strong>：在论文展示的案例中，模型在解决一道数学题时，先尝试了一种解法，推导到一半发现逻辑矛盾。</p>
+</li>
+<li>
+<p><strong>关键文本</strong>：</p>
+<blockquote>
+<p>&quot;Wait, I might have miscalculated the integral here...&quot; (等等，我这里积分好像算错了...)</p>
+<p>&quot;Let me re-evaluate the boundary conditions.&quot; (让我重新评估一下边界条件。)</p>
+</blockquote>
+</li>
+<li>
+<p><strong>行为</strong>：模型<strong>并没有停止生成</strong>，而是利用后续的 Token 对前面的错误进行否定，并开启新的推理路径。</p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="3-理论解释rl-的探索与利用-exploration-vs-exploitation">3. 理论解释：RL 的探索与利用 (Exploration vs. Exploitation)</h4>
+<p>为什么会出现这种情况？这是 <strong>Policy Gradient</strong> 算法在稀疏奖励（Sparse Reward）环境下的必然结果：</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="normal">∇</mi><mi>J</mi><mo>(</mo><mi>θ</mi><mo>)</mo><mo>≈</mo><msub><mi mathvariant="double-struck">E</mi><mrow><mi>τ</mi><mo>∼</mo><msub><mi>π</mi><mi>θ</mi></msub></mrow></msub><mo>[</mo><munderover><mo>∑</mo><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><mi>T</mi></munderover><mi mathvariant="normal">∇</mi><mi>log</mi><mo>⁡</mo><msub><mi>π</mi><mi>θ</mi></msub><mo>(</mo><msub><mi>a</mi><mi>t</mi></msub><mi mathvariant="normal">∣</mi><msub><mi>s</mi><mi>t</mi></msub><mo>)</mo><mo>⋅</mo><msub><mi>A</mi><mi>t</mi></msub><mo>]</mo></mrow><annotation encoding="application/x-tex">\nabla J(\theta) \approx \mathbb{E}_{\tau \sim \pi_\theta} [ \sum_{t=0}^T \nabla \log \pi_\theta(a_t|s_t) \cdot A_t ]
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∇</span><span class="mord mathdefault" style="margin-right:0.09618em;">J</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.02778em;">θ</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:3.0954490000000003em;vertical-align:-1.267113em;"></span><span class="mord"><span class="mord"><span class="mord mathbb">E</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139199999999997em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.1132em;">τ</span><span class="mrel mtight">∼</span><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3487714285714287em;margin-left:-0.03588em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15122857142857138em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.25586em;"><span></span></span></span></span></span></span><span class="mopen">[</span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8283360000000002em;"><span style="top:-1.882887em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span><span class="mrel mtight">=</span><span class="mord mtight">0</span></span></span></span><span style="top:-3.050005em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3000050000000005em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.13889em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.267113em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">∇</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mord"><span class="mord mathdefault">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathdefault">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">]</span></span></span></span></span></p>
+<ul>
+<li><strong>Reward Signal</strong>：只有最终答案正确才有分。</li>
+<li><strong>Credit Assignment</strong>：当某一条轨迹 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>τ</mi></mrow><annotation encoding="application/x-tex">\tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.1132em;">τ</span></span></span></span> 包含了“自我纠错”的步骤并最终答对时，RL 算法会将这个正向的 Advantage <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>A</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">A_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 回传给生成“Wait, let me check...”这几个 Token 的动作。</li>
+<li><strong>Reinforcement</strong>：模型“意识”到（即概率分布被调整），在不确定的情况下，<strong>多写几步检查代码</strong>或<strong>推翻重来</strong>，比<strong>一条路走到黑</strong>更容易拿分。这种策略被作为高价值模式固化在参数中。</li>
+</ul>
+<hr>
+<h3 id="第二部分通俗直觉解释-laymans-explanation-3">第二部分：通俗直觉解释 (Layman's Explanation)</h3>
+<p>如果说 SFT 是“填鸭式教育”，那么 R1-Zero 的 &quot;Aha Moment&quot; 就是“荒岛求生”。</p>
+<h4 id="场景无人监考的数学考试">场景：无人监考的数学考试</h4>
+<p>想象你是一个从未上过数学解题课的学生（Base Model），被关在一个房间里做考试题。</p>
+<ul>
+<li><strong>规则</strong>：做对一题给一万块钱（Reward），做错一分钱没有。没人教你怎么做，也没人给你看标准答案，你只能不断尝试。</li>
+</ul>
+<p><strong>1. 阶段一：瞎蒙 (Random Guessing)</strong></p>
+<p>一开始，你看到题目直接写答案，或者随便写两步。结果大部分都是错的，拿不到钱。你很饿，很焦虑。</p>
+<p><strong>2. 阶段二：偶然的成功 (Lucky Shot)</strong></p>
+<p>有一次，你在草稿纸（<code>&lt;think&gt;</code> 区域）上算了一半，突然觉得：“不对，这个数怎么算出来是负的？题目说是正整数啊。”</p>
+<p>于是你没有停笔，而是在草稿纸上写下：“<strong>等等，这不对，我应该换个公式试试。</strong>”</p>
+<p>然后你换了公式，算出了正确答案，拿到了钱！</p>
+<p><strong>3. 阶段三：顿悟 (The Aha Moment)</strong></p>
+<p>这时候，你脑子里灵光一现（Aha!）：</p>
+<blockquote>
+<p><strong>“原来！多想一会儿、发现不对赶紧改，能让我赚到大钱！”</strong></p>
+</blockquote>
+<p>从那以后，你不再急着写答案，而是养成了<strong>在草稿纸上反复验证、自我反驳</strong>的习惯。</p>
+<p><strong>结论</strong>：</p>
+<p>DeepSeek-R1 的 &quot;Aha Moment&quot; 就是模型在无数次试错中，自己悟出了**“三思而后行”**的道理。这不需要人类教它（SFT），因为“三思”本身就是通往正确答案（Reward）的最优路径。</p>
+</blockquote>
+<h4 id="q4-deepseek-r1-的-reward-仅仅是-accuracy-吗如果解决不了代码题怎么办"><strong>Q4: DeepSeek-R1 的 Reward 仅仅是 Accuracy 吗？如果解决不了代码题怎么办？</strong></h4>
+<ul>
+<li><strong>满分回答思路</strong>：
+<ul>
+<li>主要由 Accuracy Reward（通过编译器通过率、LeetCode 测试用例、数学答案匹配）和 Format Reward 组成。</li>
+<li><strong>关键点</strong>：R1 <strong>没有使用 Neural Reward Model</strong> (如 GPT-4 打分)，因为 Neural RM 容易被 Hack（Reward Hacking）。它极度依赖确定性的规则（Rule-Based）。</li>
+<li>对于无法自动验证的开放域问题，R1 使用了由 R1-Zero 生成并经过筛选的数据进行 SFT，从而泛化能力。</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>这是一个关于 <strong>RLHF (Reinforcement Learning from Human Feedback)</strong> 及其变体中最核心的痛点——<strong>Reward Modeling</strong> 的深度拷问。</p>
+<p>DeepSeek-R1 在这个问题上的选择非常激进且具有启发性：它<strong>完全抛弃了</strong>目前主流的、昂贵的 Neural Reward Model（即用另一个 AI 来给生成的答案打分），回归到了最原始、最硬核的<strong>规则校验（Rule-Based Verification）</strong>。</p>
+<p>以下是针对该问题的学术深度解析与通俗解释。</p>
+<hr>
+<h3 id="第一部分学术深度解析-academic-deep-dive-4">第一部分：学术深度解析 (Academic Deep Dive)</h3>
+<h4 id="1-奖励函数构成确定性的二元对立-deterministic-binary-opposition">1. 奖励函数构成：确定性的二元对立 (Deterministic Binary Opposition)</h4>
+<p>DeepSeek-R1 的 Reward Function <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>R</mi><mo>(</mo><mi>s</mi><mo separator="true">,</mo><mi>a</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">R(s, a)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="mopen">(</span><span class="mord mathdefault">s</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">a</span><span class="mclose">)</span></span></span></span> 设计遵循极简主义（Minimalism），主要由两部分硬性指标组成：</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>R</mi><mrow><mi>t</mi><mi>o</mi><mi>t</mi><mi>a</mi><mi>l</mi></mrow></msub><mo>=</mo><mi>α</mi><mo>⋅</mo><msub><mi>R</mi><mrow><mi>a</mi><mi>c</mi><mi>c</mi><mi>u</mi><mi>r</mi><mi>a</mi><mi>c</mi><mi>y</mi></mrow></msub><mo>+</mo><mi>β</mi><mo>⋅</mo><msub><mi>R</mi><mrow><mi>f</mi><mi>o</mi><mi>r</mi><mi>m</mi><mi>a</mi><mi>t</mi></mrow></msub></mrow><annotation encoding="application/x-tex">R_{total} = \alpha \cdot R_{accuracy} + \beta \cdot R_{format}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.00773em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight">t</span><span class="mord mathdefault mtight">a</span><span class="mord mathdefault mtight" style="margin-right:0.01968em;">l</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.44445em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.0037em;">α</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139200000000003em;"><span style="top:-2.5500000000000003em;margin-left:-0.00773em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">a</span><span class="mord mathdefault mtight">c</span><span class="mord mathdefault mtight">c</span><span class="mord mathdefault mtight">u</span><span class="mord mathdefault mtight" style="margin-right:0.02778em;">r</span><span class="mord mathdefault mtight">a</span><span class="mord mathdefault mtight">c</span><span class="mord mathdefault mtight" style="margin-right:0.03588em;">y</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.05278em;">β</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.00773em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.10764em;">f</span><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight" style="margin-right:0.02778em;">r</span><span class="mord mathdefault mtight">m</span><span class="mord mathdefault mtight">a</span><span class="mord mathdefault mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span></span></p>
+<ul>
+<li><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>R</mi><mrow><mi>a</mi><mi>c</mi><mi>c</mi><mi>u</mi><mi>r</mi><mi>a</mi><mi>c</mi><mi>y</mi></mrow></msub></mrow><annotation encoding="application/x-tex">R_{accuracy}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139200000000003em;"><span style="top:-2.5500000000000003em;margin-left:-0.00773em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">a</span><span class="mord mathdefault mtight">c</span><span class="mord mathdefault mtight">c</span><span class="mord mathdefault mtight">u</span><span class="mord mathdefault mtight" style="margin-right:0.02778em;">r</span><span class="mord mathdefault mtight">a</span><span class="mord mathdefault mtight">c</span><span class="mord mathdefault mtight" style="margin-right:0.03588em;">y</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> (Accuracy Reward)</strong>:
+<ul>
+<li><strong>定义</strong>：这是 RL 的主要驱动力。它依赖于<strong>确定性验证系统（Deterministic Verification System）</strong>。</li>
+<li><strong>实现</strong>：
+<ul>
+<li><strong>Math</strong>: 答案必须与 Ground Truth 完全匹配（Exact Match），或者通过符号计算库（如 SymPy）验证等价性。</li>
+<li><strong>Code</strong>: 代码必须通过编译器编译，且通过预设的 Unit Tests（测试用例）。</li>
+</ul>
+</li>
+<li><strong>性质</strong>：这是一个 <strong>Sparse Reward（稀疏奖励）</strong>，通常只有 0 和 1。</li>
+</ul>
+</li>
+<li><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>R</mi><mrow><mi>f</mi><mi>o</mi><mi>r</mi><mi>m</mi><mi>a</mi><mi>t</mi></mrow></msub></mrow><annotation encoding="application/x-tex">R_{format}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.00773em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.10764em;">f</span><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight" style="margin-right:0.02778em;">r</span><span class="mord mathdefault mtight">m</span><span class="mord mathdefault mtight">a</span><span class="mord mathdefault mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> (Format Reward)</strong>:
+<ul>
+<li><strong>定义</strong>：用于强制模型遵循 <code>&lt;think&gt;</code>...<code>&lt;/think&gt;</code><answer>...<code>&lt;/answer&gt;</code> 的结构约束。</li>
+<li><strong>实现</strong>：通过简单的正则表达式（Regex）匹配。</li>
+<li><strong>作用</strong>：防止模型在探索过程中为了“走捷径”而丢失思考过程，或者产生解析错误的输出。</li>
+</ul>
+</li>
+</ul>
+<h4 id="2-核心决策为何抛弃-neural-reward-modelavoiding-reward-hacking">2. 核心决策：为何抛弃 Neural Reward Model？(Avoiding Reward Hacking)</h4>
+<p>主流 RLHF（如 GPT-4 training）通常使用一个 <strong>Reward Model (RM)</strong> 来模拟人类偏好。DeepSeek-R1 坚决不用的原因涉及 <strong>Goodhart's Law（古德哈特定律）</strong> 和 <strong>Reward Hacking</strong>。</p>
+<ul>
+<li>
+<p><strong>Reward Hacking (Gaming the System)</strong>:</p>
+<p>如果使用一个神经网络（Neural RM）作为判卷人，Policy Model（学生）不仅会学习如何解题，还会学习<strong>如何欺骗判卷人</strong>。</p>
+<ul>
+<li><em>例如</em>：Neural RM 可能偏好“看起来很长、用词很华丽”的答案。Policy Model 就会生成一堆废话来骗高分，而不是真正解决问题。</li>
+<li><em>学术术语</em>：Policy 在 RM 的分布外（Out-of-Distribution）区域找到了高分点，但这些点并不对应高质量的输出。</li>
+</ul>
+</li>
+<li>
+<p><strong>Rule-Based 的鲁棒性</strong>：</p>
+<p>编译器（Compiler）和数学公理是无法被“欺骗”的。代码要么跑通，要么报错。这种<strong>Ground Truth</strong> 提供了最坚实的梯度信号，迫使模型只能通过提升逻辑能力来拿分。</p>
+</li>
+</ul>
+<h4 id="3-泛化难题如何解决非代码非数学题generalization-via-sft">3. 泛化难题：如何解决非代码/非数学题？(Generalization via SFT)</h4>
+<p>这是面试中最刁钻的追问：<em>如果 RL 只奖励数学和代码，那 R1 怎么写文章、做摘要？</em></p>
+<p>答案在于 <strong>Capability Transfer（能力迁移）</strong> 和 <strong>Pipeline Design</strong>。</p>
+<ul>
+<li>
+<p><strong>Logic is Universal</strong>:</p>
+<p>R1 的假设是：<strong>推理能力（Reasoning Capability）是通用的。</strong> 通过在 Math/Code 这种拥有 Ground Truth 的领域进行高强度 RL 训练，模型习得的是<strong>拆解问题、长链条规划、自我反思</strong>的思维模式（Thinking Pattern）。</p>
+</li>
+<li>
+<p><strong>DeepSeek-R1 的训练流水线</strong>：</p>
+<ol>
+<li><strong>Stage 1 (RL on Math/Code)</strong>: 练就“最强大脑”。</li>
+<li><strong>Stage 2 (SFT Data Generation)</strong>: 用这个“最强大脑”去生成各种通用任务（如写作、摘要、常识推理）的 CoT 数据。</li>
+<li><strong>Stage 3 (General SFT)</strong>: 人工筛选这些生成的数据，剔除错误的，保留逻辑通顺的。</li>
+<li><strong>Stage 4 (Final RL)</strong>: 在最终阶段，可能会引入少量的 Neural RM 来做对齐（Alignment），但核心的推理能力已经在前几个阶段固化了。</li>
+</ol>
+</li>
+</ul>
+<hr>
+<h3 id="第二部分通俗直觉解释-laymans-explanation-4">第二部分：通俗直觉解释 (Layman's Explanation)</h3>
+<h4 id="场景斯巴达式的数学集训营-vs-文学鉴赏课">场景：斯巴达式的数学集训营 vs. 文学鉴赏课</h4>
+<p><strong>1. 为什么要用“死板”的规则奖励？</strong></p>
+<ul>
+<li><strong>Neural RM (AI 判卷)</strong> 就像是请了一个<strong>稍微有点糊涂的助教</strong>来改卷子。
+<ul>
+<li>如果学生（模型）写了一篇字迹极其漂亮、引用了莎士比亚但逻辑完全狗屁不通的文章，糊涂助教可能会给高分。</li>
+<li>学生一看：“哈！原来我不需要懂逻辑，我只要把字写好看、多用大词就能拿高分！”（这就是 <strong>Reward Hacking</strong>）。</li>
+</ul>
+</li>
+<li><strong>DeepSeek R1 (Rule-Based)</strong> 就像是<strong>计算机判卷系统（或者极其严苛的数学教授）</strong>。
+<ul>
+<li>答案是 42 就是 42，写成 41.999 也是 0 分。</li>
+<li>代码跑不通就是 Error。</li>
+<li>你没法靠拍马屁、写漂亮字来通过考试。你必须<strong>真的懂</strong>怎么算。</li>
+</ul>
+</li>
+</ul>
+<p><strong>2. 只学数学，怎么能写好作文？（泛化能力）</strong></p>
+<ul>
+<li>这就像**“学好数理化，走遍天下都不怕”**的硬核版。</li>
+<li>DeepSeek 认为，你在解一道极难的微积分题目时，脑子里的那个**“把大问题拆成小问题 -&gt; 尝试一步 -&gt; 检查 -&gt; 发现错误 -&gt; 回溯 -&gt; 再尝试”<strong>的过程，才是</strong>智力（Intelligence）**的本质。</li>
+<li>一旦你在数学集训营里练成了这种<strong>深思熟虑的脑子</strong>，当你再去写作文、做策划时，你会自然而然地运用这种逻辑：先列提纲，再填充内容，检查逻辑漏洞。</li>
+<li>所以，R1 不需要靠“写作文”来学会“思考”，它是靠“做数学题”学会了“思考”，然后把这种思考能力<strong>应用</strong>到了写作文上。</li>
+</ul>
+<h3 id="总结-takeaway-3">总结 (Takeaway)</h3>
+<ul>
+<li>DeepSeek-R1 的 Reward 确实主要是 <strong>Accuracy（结果对错）</strong>，因为它最真实、最防骗。</li>
+<li>对于没有标准答案的题目（如“写首诗”），R1 并不是靠 RL 练出来的，而是靠**“数学/代码 RL 练出的脑子” + “高质量 SFT 数据引导”** 迁移过来的。</li>
+<li><strong>核心哲学</strong>：逻辑是通用的，验证是硬核的。不要试图用模糊的神经网络去指导另一个神经网络，要用**真理（Ground Truth）**去指导它。</li>
+</ul>
+</blockquote>
+<hr>
+<h3 id="5-场景与演进-sota-evolution">5. 场景与演进 (SOTA &amp; Evolution)</h3>
+<h4 id="业务场景"><strong>业务场景</strong></h4>
+<ul>
+<li><strong>复杂数学/逻辑推理</strong>：奥数题、定理证明。</li>
+<li><strong>代码生成与竞赛</strong>：LeetCode Hard 级别题目，Debug 复杂工程。</li>
+<li><strong>Agent 规划</strong>：需要多步思考和自我反思的长期任务规划。</li>
+</ul>
+<h4 id="sota-演进"><strong>SOTA 演进</strong></h4>
+<ul>
+<li><strong>当前地位</strong>：DeepSeek-R1 是目前开源界（Open Weights）的最强推理模型，在数学（AIME）和代码（Codeforces）基准上匹敌甚至超越 OpenAI o1-preview。</li>
+<li><strong>变体 (Variants)</strong>：
+<ul>
+<li><strong>Distillation Models</strong>：DeepSeek-R1-Distill-Llama/Qwen。利用 R1 生成的高质量 CoT 数据，蒸馏到小模型（如 7B, 32B）上。这证明了<strong>推理能力是可以被蒸馏的</strong>，小模型不需要大规模 RL 也能具备不错的推理能力（前提是大模型老师够强）。</li>
+</ul>
+</li>
+<li><strong>未来趋势</strong>：
+<ul>
+<li><strong>Process Reward Model (PRM) 回归</strong>：虽然 R1 证明 Outcome Reward 有效，但在超长推理中，引入稀疏的 Process Reward 可能会进一步加速收敛。</li>
+<li><strong>多模态推理</strong>：将 CoT 扩展到 Vision-Language 领域（如看图解几何题）。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="总结与下一步">总结与下一步</h3>
+<p>DeepSeek-R1 告诉我们：<strong>只要激励（Reward）足够明确，模型会自己找到通往真理的路径（CoT），甚至学会反思。</strong> 而 GRPO 是实现这一过程的高效算力引擎。</p>
+<p><strong>Would you like me to ...</strong></p>
+<ul>
+<li>为您详细拆解 <strong>GRPO 的 Pytorch 完整可运行 Demo</strong>（包括 Dummy Environment）？</li>
+<li>或者模拟一场针对 <strong>&quot;DeepSeek-R1 vs OpenAI o1 技术路线对比&quot;</strong> 的 Mock Interview？</li>
+</ul>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#1-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%E4%B8%8E%E8%AE%BA%E6%96%87%E6%BA%AF%E6%BA%90-concept-paper-roots">1. 核心概念与论文溯源 (Concept &amp; Paper Roots)</a>
+<ul>
+<li><a href="#%E8%AE%BA%E6%96%87%E5%BC%95%E7%94%A8"><strong>论文引用</strong></a></li>
+<li><a href="#%E6%9C%AC%E8%B4%A8%E6%A6%82%E6%8B%AC"><strong>本质概括</strong></a></li>
+<li><a href="#%E7%97%9B%E7%82%B9%E8%A7%A3%E5%86%B3-vs-baseline"><strong>痛点解决 (vs Baseline)</strong></a></li>
+</ul>
+</li>
+<li><a href="#2-%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86%E4%B8%8E%E6%8E%A8%E5%AF%BC-mathematical-underpinning">2. 数学原理与推导 (Mathematical Underpinning)</a>
+<ul>
+<li><a href="#%E6%A0%B8%E5%BF%83%E5%85%AC%E5%BC%8Fgrpo-%E7%9B%AE%E6%A0%87%E5%87%BD%E6%95%B0"><strong>核心公式：GRPO 目标函数</strong></a></li>
+<li><a href="#%E5%8F%98%E9%87%8F%E5%90%AB%E4%B9%89%E4%B8%8E%E6%8E%A8%E5%AF%BC%E7%9B%B4%E8%A7%89"><strong>变量含义与推导直觉</strong></a></li>
+</ul>
+</li>
+<li><a href="#%E7%AC%AC%E4%B8%80%E9%83%A8%E5%88%86%E5%AD%A6%E6%9C%AF%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-academic-deep-dive">第一部分：学术深度解析 (Academic Deep Dive)</a>
+<ul>
+<li><a href="#1-%E6%A0%B8%E5%BF%83%E5%85%AC%E5%BC%8F%E6%8B%86%E8%A7%A3">1. 核心公式拆解</a></li>
+<li><a href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E5%86%8D%E9%9C%80%E8%A6%81-critic">2. 为什么不再需要 Critic？</a></li>
+</ul>
+</li>
+<li><a href="#%E7%AC%AC%E4%BA%8C%E9%83%A8%E5%88%86%E9%80%9A%E4%BF%97%E7%9B%B4%E8%A7%89%E8%A7%A3%E9%87%8A-laymans-explanation">第二部分：通俗直觉解释 (Layman's Explanation)</a>
+<ul>
+<li><a href="#%E5%9C%BA%E6%99%AF%E8%80%81%E5%B8%88%E7%8E%AF%E5%A2%83%E8%AE%AD%E7%BB%83%E5%AD%A6%E7%94%9F%E6%A8%A1%E5%9E%8B%E5%81%9A%E5%A5%A5%E6%95%B0%E9%A2%98">场景：老师（环境）训练学生（模型）做奥数题</a></li>
+</ul>
+</li>
+<li><a href="#%E6%80%BB%E7%BB%93-takeaway">总结 (Takeaway)</a></li>
+<li><a href="#3-%E6%89%8B%E6%92%95%E4%BB%A3%E7%A0%81%E9%87%8D%E7%82%B9%E4%B8%8E%E5%AE%9E%E7%8E%B0-whiteboard-coding-focus">3. 手撕代码重点与实现 (Whiteboard Coding Focus)</a>
+<ul>
+<li><a href="#%E6%A0%B8%E5%BF%83%E9%80%BB%E8%BE%91-%E5%BF%85%E9%A1%BB%E6%AD%BB%E8%AE%B0"><strong>核心逻辑 (必须死记)</strong></a></li>
+<li><a href="#%E4%BB%A3%E7%A0%81%E5%B1%95%E7%A4%BA-pytorch-%E5%AE%9E%E7%8E%B0-grpo-loss"><strong>代码展示 (PyTorch 实现 GRPO Loss)</strong></a></li>
+<li><a href="#%E5%B7%A5%E7%A8%8B%E7%BB%86%E8%8A%82"><strong>工程细节</strong></a></li>
+</ul>
+</li>
+<li><a href="#4-%E9%9D%A2%E8%AF%95%E9%AB%98%E9%A2%91%E8%80%83%E5%AF%9F%E7%82%B9-interview-checkpoints">4. 面试高频考察点 (Interview Checkpoints)</a>
+<ul>
+<li><a href="#q1-%E4%B8%BA%E4%BB%80%E4%B9%88-r1-zero-%E9%98%B6%E6%AE%B5%E4%B8%8D%E4%BD%BF%E7%94%A8-sft-%E6%95%B0%E6%8D%AEcold-start%E7%9B%B4%E6%8E%A5%E8%BF%9B%E8%A1%8C-rl%E6%9C%89%E4%BB%80%E4%B9%88%E5%90%8E%E6%9E%9C"><strong>Q1: 为什么 R1-Zero 阶段不使用 SFT 数据（Cold Start）直接进行 RL？有什么后果？</strong></a></li>
+</ul>
+</li>
+<li><a href="#%E7%AC%AC%E4%B8%80%E9%83%A8%E5%88%86%E5%AD%A6%E6%9C%AF%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-academic-deep-dive-2">第一部分：学术深度解析 (Academic Deep Dive)</a>
+<ul>
+<li><a href="#1-%E6%A0%B8%E5%BF%83%E5%8A%A8%E6%9C%BA%E6%8E%A2%E7%A9%B6%E6%B6%8C%E7%8E%B0%E7%9A%84%E7%8B%AC%E7%AB%8B%E6%80%A7-independence-of-emergence">1. 核心动机：探究“涌现”的独立性 (Independence of Emergence)</a></li>
+<li><a href="#2-%E8%B4%9F%E9%9D%A2%E5%90%8E%E6%9E%9C%E5%A5%96%E5%8A%B1%E6%AC%BA%E9%AA%97%E4%B8%8E%E7%86%B5%E5%A2%9E-reward-hacking-entropy">2. 负面后果：奖励欺骗与熵增 (Reward Hacking &amp; Entropy)</a></li>
+<li><a href="#3-%E6%94%B9%E8%BF%9B%E6%96%B9%E6%A1%88cold-start-data-%E4%BD%9C%E4%B8%BA%E5%85%88%E9%AA%8C-prior">3. 改进方案：Cold Start Data 作为先验 (Prior)</a></li>
+</ul>
+</li>
+<li><a href="#%E7%AC%AC%E4%BA%8C%E9%83%A8%E5%88%86%E9%80%9A%E4%BF%97%E7%9B%B4%E8%A7%89%E8%A7%A3%E9%87%8A-laymans-explanation-2">第二部分：通俗直觉解释 (Layman's Explanation)</a>
+<ul>
+<li><a href="#1-r1-zero%E6%94%BE%E5%85%BB%E7%9A%84%E5%A4%A9%E6%89%8D%E9%87%8E%E5%AD%A9%E5%AD%90">1. R1-Zero：放养的“天才野孩子”</a></li>
+<li><a href="#2-cold-start-sft%E4%B9%9F%E5%B0%B1%E6%98%AF%E9%80%9A%E8%BF%87%E7%A4%BC%E4%BB%AA%E8%AF%BE">2. Cold Start (SFT)：也就是“通过礼仪课”</a></li>
+</ul>
+</li>
+<li><a href="#%E6%80%BB%E7%BB%93-takeaway-2">总结 (Takeaway)</a>
+<ul>
+<li><a href="#q2-grpo-%E7%9B%B8%E6%AF%94%E4%BA%8E-ppo%E6%98%BE%E5%AD%98%E8%8A%82%E7%9C%81%E4%B8%BB%E8%A6%81%E4%BD%93%E7%8E%B0%E5%9C%A8%E5%93%AA%E9%87%8C"><strong>Q2: GRPO 相比于 PPO，显存节省主要体现在哪里？</strong></a></li>
+<li><a href="#q3-%E4%BB%80%E4%B9%88%E6%98%AF-aha-moment%E5%AE%83%E6%98%AF%E5%A6%82%E4%BD%95%E8%A2%AB%E8%A7%82%E6%B5%8B%E5%88%B0%E7%9A%84"><strong>Q3: 什么是 &quot;Aha Moment&quot;？它是如何被观测到的？</strong></a></li>
+</ul>
+</li>
+<li><a href="#%E7%AC%AC%E4%B8%80%E9%83%A8%E5%88%86%E5%AD%A6%E6%9C%AF%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-academic-deep-dive-3">第一部分：学术深度解析 (Academic Deep Dive)</a>
+<ul>
+<li><a href="#1-%E5%AE%9A%E4%B9%89%E9%9D%9E%E6%A8%A1%E4%BB%BF%E6%80%A7%E7%9A%84%E8%87%AA%E5%8F%91%E6%B6%8C%E7%8E%B0-non-imitative-emergence">1. 定义：非模仿性的自发涌现 (Non-Imitative Emergence)</a></li>
+<li><a href="#2-%E8%A7%82%E6%B5%8B%E8%AF%81%E6%8D%AE%E8%BD%A8%E8%BF%B9%E5%88%86%E6%9E%90-trajectory-analysis">2. 观测证据：轨迹分析 (Trajectory Analysis)</a></li>
+<li><a href="#3-%E7%90%86%E8%AE%BA%E8%A7%A3%E9%87%8Arl-%E7%9A%84%E6%8E%A2%E7%B4%A2%E4%B8%8E%E5%88%A9%E7%94%A8-exploration-vs-exploitation">3. 理论解释：RL 的探索与利用 (Exploration vs. Exploitation)</a></li>
+</ul>
+</li>
+<li><a href="#%E7%AC%AC%E4%BA%8C%E9%83%A8%E5%88%86%E9%80%9A%E4%BF%97%E7%9B%B4%E8%A7%89%E8%A7%A3%E9%87%8A-laymans-explanation-3">第二部分：通俗直觉解释 (Layman's Explanation)</a>
+<ul>
+<li><a href="#%E5%9C%BA%E6%99%AF%E6%97%A0%E4%BA%BA%E7%9B%91%E8%80%83%E7%9A%84%E6%95%B0%E5%AD%A6%E8%80%83%E8%AF%95">场景：无人监考的数学考试</a></li>
+<li><a href="#q4-deepseek-r1-%E7%9A%84-reward-%E4%BB%85%E4%BB%85%E6%98%AF-accuracy-%E5%90%97%E5%A6%82%E6%9E%9C%E8%A7%A3%E5%86%B3%E4%B8%8D%E4%BA%86%E4%BB%A3%E7%A0%81%E9%A2%98%E6%80%8E%E4%B9%88%E5%8A%9E"><strong>Q4: DeepSeek-R1 的 Reward 仅仅是 Accuracy 吗？如果解决不了代码题怎么办？</strong></a></li>
+</ul>
+</li>
+<li><a href="#%E7%AC%AC%E4%B8%80%E9%83%A8%E5%88%86%E5%AD%A6%E6%9C%AF%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-academic-deep-dive-4">第一部分：学术深度解析 (Academic Deep Dive)</a>
+<ul>
+<li><a href="#1-%E5%A5%96%E5%8A%B1%E5%87%BD%E6%95%B0%E6%9E%84%E6%88%90%E7%A1%AE%E5%AE%9A%E6%80%A7%E7%9A%84%E4%BA%8C%E5%85%83%E5%AF%B9%E7%AB%8B-deterministic-binary-opposition">1. 奖励函数构成：确定性的二元对立 (Deterministic Binary Opposition)</a></li>
+<li><a href="#2-%E6%A0%B8%E5%BF%83%E5%86%B3%E7%AD%96%E4%B8%BA%E4%BD%95%E6%8A%9B%E5%BC%83-neural-reward-modelavoiding-reward-hacking">2. 核心决策：为何抛弃 Neural Reward Model？(Avoiding Reward Hacking)</a></li>
+<li><a href="#3-%E6%B3%9B%E5%8C%96%E9%9A%BE%E9%A2%98%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3%E9%9D%9E%E4%BB%A3%E7%A0%81%E9%9D%9E%E6%95%B0%E5%AD%A6%E9%A2%98generalization-via-sft">3. 泛化难题：如何解决非代码/非数学题？(Generalization via SFT)</a></li>
+</ul>
+</li>
+<li><a href="#%E7%AC%AC%E4%BA%8C%E9%83%A8%E5%88%86%E9%80%9A%E4%BF%97%E7%9B%B4%E8%A7%89%E8%A7%A3%E9%87%8A-laymans-explanation-4">第二部分：通俗直觉解释 (Layman's Explanation)</a>
+<ul>
+<li><a href="#%E5%9C%BA%E6%99%AF%E6%96%AF%E5%B7%B4%E8%BE%BE%E5%BC%8F%E7%9A%84%E6%95%B0%E5%AD%A6%E9%9B%86%E8%AE%AD%E8%90%A5-vs-%E6%96%87%E5%AD%A6%E9%89%B4%E8%B5%8F%E8%AF%BE">场景：斯巴达式的数学集训营 vs. 文学鉴赏课</a></li>
+</ul>
+</li>
+<li><a href="#%E6%80%BB%E7%BB%93-takeaway-3">总结 (Takeaway)</a></li>
+<li><a href="#5-%E5%9C%BA%E6%99%AF%E4%B8%8E%E6%BC%94%E8%BF%9B-sota-evolution">5. 场景与演进 (SOTA &amp; Evolution)</a>
+<ul>
+<li><a href="#%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF"><strong>业务场景</strong></a></li>
+<li><a href="#sota-%E6%BC%94%E8%BF%9B"><strong>SOTA 演进</strong></a></li>
+</ul>
+</li>
+<li><a href="#%E6%80%BB%E7%BB%93%E4%B8%8E%E4%B8%8B%E4%B8%80%E6%AD%A5">总结与下一步</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://Alive-mk.github.io/post/process-reward-model-prm/">
+              <h3 class="post-title">
+                Process Reward Model (PRM) 
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://Alive-mk.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,410 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Research Note: DOSC Theoretical Framework &amp; Critical Analysis | Alive-mk</title>
+<link rel="shortcut icon" href="https://Alive-mk.github.io/favicon.ico?v=1770951170092">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://Alive-mk.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Research Note: DOSC Theoretical Framework &amp; Critical Analysis | Alive-mk - Atom Feed" href="https://Alive-mk.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="🏷️ Tags: #NLP #DenseRetrieval #NegationLogic #VectorGeometry #NeuroSymbolic #ContrastiveLearning #Critique
+📝 Topic: Th..." />
+    <meta name="keywords" content="DOSC" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://Alive-mk.github.io">
+  <img class="avatar" src="https://Alive-mk.github.io/images/avatar.png?v=1770951170092" alt="">
+  </a>
+  <h1 class="site-title">
+    Alive-mk
+  </h1>
+  <p class="site-description">
+    温故而知新
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Research Note: DOSC Theoretical Framework &amp; Critical Analysis
+            </h2>
+            <div class="post-info">
+              <span>
+                2026-01-28
+              </span>
+              <span>
+                10 min read
+              </span>
+              
+                <a href="https://Alive-mk.github.io/tag/sNehlrWDx6/" class="post-tag">
+                  # DOSC
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>🏷️ Tags: #NLP #DenseRetrieval #NegationLogic #VectorGeometry #NeuroSymbolic #ContrastiveLearning #Critique</p>
+<p>📝 Topic: The White Elephant Effect &amp; Dynamic Orthogonal Subspace Correction (DOSC)</p>
+<hr>
+<h2 id="1-深度批判针对放大否定词维度假设的驳斥">1. 深度批判：针对“放大否定词维度”假设的驳斥</h2>
+<p>(Critique of the &quot;Magnitude Amplification&quot; Hypothesis in Adapters)</p>
+<p>核心谬误： Adapter 类方法假设否定词不起作用是因为它“太弱了”（模长太小或特征不显著），因此试图通过放大否定词（如 'not', 'without'）向量的维度来解决问题。</p>
+<p>致命弱点： 它误判了否定词在稠密向量空间中的“物理状态”。</p>
+<p>以下是驳斥该假设的三个核心论点：</p>
+<h3 id="论点一方向谬误-the-directional-fallacy">🔴 论点一：方向谬误 (The Directional Fallacy)</h3>
+<p>—— 你在放大错误的信号 (Amplifying the Wrong Signal)</p>
+<ul>
+<li>
+<p>Adapter 的假设： 否定词弱，所以要放大。</p>
+</li>
+<li>
+<p>我的反驳： 实验（Boxplot 和 Attention Map）证明，由于上下文注意力机制，否定词向量 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi mathvariant="bold">v</mi><mrow><mi>n</mi><mi>e</mi><mi>g</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\mathbf{v}_{neg}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.730548em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord"><span class="mord mathbf" style="margin-right:0.01597em;">v</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139200000000003em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">n</span><span class="mord mathdefault mtight">e</span><span class="mord mathdefault mtight" style="margin-right:0.03588em;">g</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span>（例如 &quot;without&quot;）在空间中往往已经与实体词 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi mathvariant="bold">v</mi><mrow><mi>e</mi><mi>n</mi><mi>t</mi><mi>i</mi><mi>t</mi><mi>y</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\mathbf{v}_{entity}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.730548em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord"><span class="mord mathbf" style="margin-right:0.01597em;">v</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">e</span><span class="mord mathdefault mtight">n</span><span class="mord mathdefault mtight">t</span><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">t</span><span class="mord mathdefault mtight" style="margin-right:0.03588em;">y</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span>（例如 &quot;sugar&quot;）发生了共线（Collinear）。</p>
+<ul>
+<li>在 BERT 眼里，<code>without</code> 的向量方向并不是指向“排除”，而是指向了“与 sugar 强相关”。</li>
+</ul>
+</li>
+<li>
+<p>后果： 当你放大 <code>without</code> 的维度数值时，实际上是在执行 Scalar Multiplication (标量乘法)：</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi mathvariant="bold">v</mi><mrow><mi>n</mi><mi>e</mi><mi>w</mi></mrow></msub><mo>=</mo><mi>α</mi><mo>⋅</mo><msub><mi mathvariant="bold">v</mi><mrow><mi>w</mi><mi>i</mi><mi>t</mi><mi>h</mi><mi>o</mi><mi>u</mi><mi>t</mi></mrow></msub><mspace width="1em"/><mo>(</mo><mi>α</mi><mo>&gt;</mo><mn>1</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">\mathbf{v}_{new} = \alpha \cdot \mathbf{v}_{without} \quad (\alpha &gt; 1)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.59444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord"><span class="mord mathbf" style="margin-right:0.01597em;">v</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">n</span><span class="mord mathdefault mtight">e</span><span class="mord mathdefault mtight" style="margin-right:0.02691em;">w</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.44445em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.0037em;">α</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord"><span class="mord mathbf" style="margin-right:0.01597em;">v</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.02691em;">w</span><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">t</span><span class="mord mathdefault mtight">h</span><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight">u</span><span class="mord mathdefault mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:1em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.0037em;">α</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span></span></p>
+<p>如果 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi mathvariant="bold">v</mi><mrow><mi>w</mi><mi>i</mi><mi>t</mi><mi>h</mi><mi>o</mi><mi>u</mi><mi>t</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\mathbf{v}_{without}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.59444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord"><span class="mord mathbf" style="margin-right:0.01597em;">v</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.02691em;">w</span><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">t</span><span class="mord mathdefault mtight">h</span><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight">u</span><span class="mord mathdefault mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 的方向本身就指向 sugar（或者与 sugar 高度相似），放大它只会让 Query 向量在错误的道路上跑得更远。你并没有实现“反转”，你只是增强了“相关性”。</p>
+</li>
+<li>
+<p>一句话总结： “放大否定词”就像是发现车开反了方向（指向了实体），却还要猛踩油门（放大向量）。正确的做法是打方向盘（DOSC 的正交投影）。</p>
+</li>
+</ul>
+<h3 id="论点二算子错位-the-operator-feature-mismatch">🔴 论点二：算子错位 (The Operator-Feature Mismatch)</h3>
+<p>—— 否定是“动词”，不是“名词”</p>
+<ul>
+<li>Adapter 的假设： 把“否定”当成了一种静态属性（Attribute）。就像“红色”或“甜”是一种属性，它认为“否定”也是一种属性，试图通过增加“否定属性”的浓度来覆盖掉“实体属性”。</li>
+<li>我的反驳： 在逻辑语义中，否定是一个算子（Operator）\或\变换（Transformation），而不是一个特征。
+<ul>
+<li>你不能通过往一杯水里加“非水”这种物质来让水消失。你必须执行“倒水”这个动作。</li>
+<li>单纯放大否定词的维度，只是在向量里增加了更多关于“否定”这个抽象概念的噪音，而没有执行几何上的正交化（Orthogonalization）\或\减法（Subtraction）。</li>
+</ul>
+</li>
+<li>结论： Adapter 试图用 加法逻辑 (Additive Logic) 去解决 减法问题 (Subtractive Problem)，这是数学形式上的错配。</li>
+</ul>
+<h3 id="论点三维度纠缠与语法噪音-dimensional-entanglement-syntactic-noise">🔴 论点三：维度纠缠与语法噪音 (Dimensional Entanglement &amp; Syntactic Noise)</h3>
+<ul>
+<li>Adapter 的假设： 否定词的某些维度专门负责“逻辑取反”。</li>
+<li>我的反驳： 在 Dense Embedding 中，维度是高度纠缠（Entangled）的。
+<ul>
+<li><code>without</code> 这个词的向量不仅包含（微弱的）逻辑含义，还包含大量的语法信息（它是一个介词、它通常连接名词、它出现在句中位置等）。</li>
+</ul>
+</li>
+<li>后果： 当你暴力放大 <code>without</code> 的维度时，你同时放大了这些无关的语法噪音（Syntactic Noise）。
+<ul>
+<li>这会导致 Query 向量偏离原本的语义流形（Manifold）。</li>
+<li>导致模型虽然可能不再匹配“糖”，但也匹配不到“饼干”了，因为它变成了一个畸形的、充满语法噪音的向量。这就是 Semantic Bleeding。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="2-理论支柱-i线性概念擦除-linear-concept-erasure">2. 理论支柱 I：线性概念擦除 (Linear Concept Erasure)</h2>
+<p>(Theoretical Pillar: INLP)</p>
+<p>引用此理论能直接把 DOSC 从“工程技巧”拔高到“向量空间几何理论”的高度。</p>
+<h3 id="核心论文">📄 核心论文</h3>
+<ul>
+<li>题目: Null It Out: Guarding Protected Attributes by Iterative Nullspace Projection (INLP)</li>
+<li>作者: Shauli Ravfogel et al. (ACL 2020)</li>
+<li>核心思想: 如果线性分类器能分辨出向量中的“性别”，说明向量包含性别方向。把该方向“压扁”（投影到零空间），偏见即消除。</li>
+</ul>
+<h3 id="️-inlp-工作原理">⚙️ INLP 工作原理</h3>
+<ol>
+<li>找方向 (Identify Direction): 训练线性分类器预测敏感属性 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>z</mi></mrow><annotation encoding="application/x-tex">z</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.04398em;">z</span></span></span></span>，权重向量 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>w</mi></mrow><annotation encoding="application/x-tex">w</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.02691em;">w</span></span></span></span> 即为“偏见方向”。</li>
+<li>做投影 (Project to Nullspace): 构造投影矩阵 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>P</mi><mo>=</mo><mi>I</mi><mo>−</mo><mi>w</mi><msup><mi>w</mi><mi>T</mi></msup></mrow><annotation encoding="application/x-tex">P = I - w w^T</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.13889em;">P</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathdefault" style="margin-right:0.07847em;">I</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.8413309999999999em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.02691em;">w</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.13889em;">T</span></span></span></span></span></span></span></span></span></span></span>，计算 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>x</mi><mo mathvariant="normal">′</mo></msup><mo>=</mo><mi>P</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">x&#x27; = Px</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.13889em;">P</span><span class="mord mathdefault">x</span></span></span></span>。
+<ul>
+<li>几何意义: 将 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>x</mi></mrow><annotation encoding="application/x-tex">x</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">x</span></span></span></span> 投影到与 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>w</mi></mrow><annotation encoding="application/x-tex">w</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.02691em;">w</span></span></span></span> 正交（垂直）的子空间 (<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mtext>span</mtext><mo>(</mo><mi>w</mi><msup><mo>)</mo><mo>⊥</mo></msup></mrow><annotation encoding="application/x-tex">\text{span}(w)^\perp</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.099108em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">span</span></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.02691em;">w</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.849108em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mrel mtight">⊥</span></span></span></span></span></span></span></span></span></span></span>)。</li>
+</ul>
+</li>
+<li>迭代 (Iterate): 重复多次直到分类器失效。</li>
+</ol>
+<h3 id="dosc-与-inlp-的关系论文论述点">🔗 DOSC 与 INLP 的关系（论文论述点）</h3>
+<ol>
+<li>理论继承：同宗同源</li>
+</ol>
+<ul>
+<li>DOSC 和 INLP 共享同一个核心数学假设：线性假设 (The Linear Hypothesis)。</li>
+<li>INLP 认为： 偏见（Bias）是向量空间的一个线性子空间。</li>
+<li>DOSC 认为： 否定（Negation）是向量空间的一个线性子空间。</li>
+<li>共同操作： 都是通过 正交投影 (Orthogonal Projection) 来移除这个子空间的信息。</li>
+</ul>
+<ol start="2">
+<li>核心差异：DOSC 的创新点（Dynamic vs. Static）</li>
+</ol>
+<ul>
+<li>INLP (静态全局擦除): 投影矩阵 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.13889em;">P</span></span></span></span> 是固定的，对所有词做同样操作（“大清洗”）。</li>
+<li>DOSC (动态局部擦除): 矩阵是因地制宜的。
+<ul>
+<li>Query A (&quot;cookies without sugar&quot;) <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>→</mo></mrow><annotation encoding="application/x-tex">\rightarrow</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">→</span></span></span></span> <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>P</mi><mrow><mi>s</mi><mi>u</mi><mi>g</mi><mi>a</mi><mi>r</mi></mrow></msub></mrow><annotation encoding="application/x-tex">P_{sugar}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139200000000003em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">s</span><span class="mord mathdefault mtight">u</span><span class="mord mathdefault mtight" style="margin-right:0.03588em;">g</span><span class="mord mathdefault mtight">a</span><span class="mord mathdefault mtight" style="margin-right:0.02778em;">r</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span></li>
+<li>Query B (&quot;hotels not in Tokyo&quot;) <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>→</mo></mrow><annotation encoding="application/x-tex">\rightarrow</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">→</span></span></span></span> <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>P</mi><mrow><mi>T</mi><mi>o</mi><mi>k</mi><mi>y</mi><mi>o</mi></mrow></msub></mrow><annotation encoding="application/x-tex">P_{Tokyo}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.13889em;">T</span><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span><span class="mord mathdefault mtight" style="margin-right:0.03588em;">y</span><span class="mord mathdefault mtight">o</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span></li>
+</ul>
+</li>
+<li>价值： 只在推理时 (Inference-time) 针对特定实例 (Instance-wise) 手术，不破坏其他无关语义（Manifold Preservation）。</li>
+</ul>
+<hr>
+<h2 id="3-理论支柱-ii嵌入空间的各向异性-representation-anisotropy">3. 理论支柱 II：嵌入空间的各向异性 (Representation Anisotropy)</h2>
+<p>(Theoretical Pillar: Anisotropy)</p>
+<p>解释“极性盲区”现象的数学基础。</p>
+<h3 id="核心论文-2">📄 核心论文</h3>
+<ul>
+<li>题目: How Contextual are Contextualized Word Representations?</li>
+<li>作者: Kawin Ethayarajh (EMNLP 2019)</li>
+<li>核心发现: BERT/RoBERTa 向量空间存在严重各向异性。任意两个向量余弦相似度极高（平均 0.99），而非接近 0。</li>
+</ul>
+<h3 id="概念解析">📐 概念解析</h3>
+<ul>
+<li>各向异性 (Anisotropic): 向量不是均匀分布在球面上，而是挤在一个狭窄的锥形 (Cone) 区域内。</li>
+<li>流氓维度 (Rogue Dimensions): 少数几个维度的数值在所有词向量里都非常大，主导了余弦相似度，掩盖了“否定”等细微语义差别。
+<ul>
+<li>现象解释： 为什么 <code>cookies with sugar</code> 和 <code>cookies without sugar</code> 相似度极高？因为它们在流氓维度上都继承了“食物上下文”的大数值特征。</li>
+</ul>
+</li>
+</ul>
+<h3 id="dosc-的作用">🔗 DOSC 的作用</h3>
+<ul>
+<li>简单减法无效： 由于各向异性，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mover accent="true"><mi>v</mi><mo>⃗</mo></mover><mrow><mi>c</mi><mi>o</mi><mi>o</mi><mi>k</mi><mi>i</mi><mi>e</mi><mi>s</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\vec{v}_{cookies}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.864em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.714em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.20772em;"><span class="overlay" style="height:0.714em;width:0.471em;"><svg width='0.471em' height='0.714em' style='width:0.471em' viewBox='0 0 471 714' preserveAspectRatio='xMinYMin'><path d='M377 20c0-5.333 1.833-10 5.5-14S391 0 397 0c4.667 0 8.667 1.667 12 5
+3.333 2.667 6.667 9 10 19 6.667 24.667 20.333 43.667 41 57 7.333 4.667 11
+10.667 11 18 0 6-1 10-3 12s-6.667 5-14 9c-28.667 14.667-53.667 35.667-75 63
+-1.333 1.333-3.167 3.5-5.5 6.5s-4 4.833-5 5.5c-1 .667-2.5 1.333-4.5 2s-4.333 1
+-7 1c-4.667 0-9.167-1.833-13.5-5.5S337 184 337 178c0-12.667 15.667-32.333 47-59
+H213l-171-1c-8.667-6-13-12.333-13-19 0-4.667 4.333-11.333 13-20h359
+c-16-25.333-24-45-24-59z'/></svg></span></span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">c</span><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">e</span><span class="mord mathdefault mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 和 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mover accent="true"><mi>v</mi><mo>⃗</mo></mover><mrow><mi>s</mi><mi>u</mi><mi>g</mi><mi>a</mi><mi>r</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\vec{v}_{sugar}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.000108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.714em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.20772em;"><span class="overlay" style="height:0.714em;width:0.471em;"><svg width='0.471em' height='0.714em' style='width:0.471em' viewBox='0 0 471 714' preserveAspectRatio='xMinYMin'><path d='M377 20c0-5.333 1.833-10 5.5-14S391 0 397 0c4.667 0 8.667 1.667 12 5
+3.333 2.667 6.667 9 10 19 6.667 24.667 20.333 43.667 41 57 7.333 4.667 11
+10.667 11 18 0 6-1 10-3 12s-6.667 5-14 9c-28.667 14.667-53.667 35.667-75 63
+-1.333 1.333-3.167 3.5-5.5 6.5s-4 4.833-5 5.5c-1 .667-2.5 1.333-4.5 2s-4.333 1
+-7 1c-4.667 0-9.167-1.833-13.5-5.5S337 184 337 178c0-12.667 15.667-32.333 47-59
+H213l-171-1c-8.667-6-13-12.333-13-19 0-4.667 4.333-11.333 13-20h359
+c-16-25.333-24-45-24-59z'/></svg></span></span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139200000000003em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">s</span><span class="mord mathdefault mtight">u</span><span class="mord mathdefault mtight" style="margin-right:0.03588em;">g</span><span class="mord mathdefault mtight">a</span><span class="mord mathdefault mtight" style="margin-right:0.02778em;">r</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> 几乎平行，相减后向量消失或只剩噪音。</li>
+<li>正交投影有效： DOSC 的 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi mathvariant="bold">h</mi><mrow><mi>f</mi><mi>i</mi><mi>n</mi><mi>a</mi><mi>l</mi></mrow></msub><mo>=</mo><msub><mi mathvariant="bold">h</mi><mi>q</mi></msub><mo>−</mo><msub><mtext>proj</mtext><mover accent="true"><mi>n</mi><mo>⃗</mo></mover></msub><mo>(</mo><msub><mi mathvariant="bold">h</mi><mi>q</mi></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">\mathbf{h}_{final} = \mathbf{h}_{q} - \text{proj}_{\vec{n}}(\mathbf{h}_{q})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.980548em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord"><span class="mord mathbf">h</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.10764em;">f</span><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span><span class="mord mathdefault mtight">a</span><span class="mord mathdefault mtight" style="margin-right:0.01968em;">l</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.980548em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord"><span class="mord mathbf">h</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139200000000003em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">q</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord text"><span class="mord">proj</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.25566em;"><span style="top:-2.4558600000000004em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord accent mtight"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.714em;"><span style="top:-2.714em;"><span class="pstrut" style="height:2.714em;"></span><span class="mord mtight"><span class="mord mathdefault mtight">n</span></span></span><span style="top:-2.714em;"><span class="pstrut" style="height:2.714em;"></span><span class="accent-body" style="left:-0.2355em;"><span class="overlay mtight" style="height:0.714em;width:0.471em;"><svg width='0.471em' height='0.714em' style='width:0.471em' viewBox='0 0 471 714' preserveAspectRatio='xMinYMin'><path d='M377 20c0-5.333 1.833-10 5.5-14S391 0 397 0c4.667 0 8.667 1.667 12 5
+3.333 2.667 6.667 9 10 19 6.667 24.667 20.333 43.667 41 57 7.333 4.667 11
+10.667 11 18 0 6-1 10-3 12s-6.667 5-14 9c-28.667 14.667-53.667 35.667-75 63
+-1.333 1.333-3.167 3.5-5.5 6.5s-4 4.833-5 5.5c-1 .667-2.5 1.333-4.5 2s-4.333 1
+-7 1c-4.667 0-9.167-1.833-13.5-5.5S337 184 337 178c0-12.667 15.667-32.333 47-59
+H213l-171-1c-8.667-6-13-12.333-13-19 0-4.667 4.333-11.333 13-20h359
+c-16-25.333-24-45-24-59z'/></svg></span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.24414em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord"><span class="mord mathbf">h</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139200000000003em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">q</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> 强制让 Query 寻找垂直于“糖”（及各向异性主轴）的新方向。它本质上是一种局部的 去相关 (Decorrelation) 操作，还原逻辑真相。</li>
+</ul>
+<hr>
+<h2 id="4-理论支柱-iii对比学习中的采样偏差-sampling-bias">4. 理论支柱 III：对比学习中的采样偏差 (Sampling Bias)</h2>
+<p>(Theoretical Pillar: Contrastive Learning Failure)</p>
+<p>解释“Why Model Fails”的训练机理。</p>
+<h3 id="核心问题infonce-loss-的缺陷">📉 核心问题：InfoNCE Loss 的缺陷</h3>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="script">L</mi><mo>=</mo><mo>−</mo><mi>log</mi><mo>⁡</mo><mfrac><mrow><mi>exp</mi><mo>⁡</mo><mo>(</mo><mtext>sim</mtext><mo>(</mo><mi>q</mi><mo separator="true">,</mo><msup><mi>d</mi><mo>+</mo></msup><mo>)</mo><mi mathvariant="normal">/</mi><mi>τ</mi><mo>)</mo></mrow><mrow><mi>exp</mi><mo>⁡</mo><mo>(</mo><mtext>sim</mtext><mo>(</mo><mi>q</mi><mo separator="true">,</mo><msup><mi>d</mi><mo>+</mo></msup><mo>)</mo><mi mathvariant="normal">/</mi><mi>τ</mi><mo>)</mo><mo>+</mo><mo>∑</mo><mi>exp</mi><mo>⁡</mo><mo>(</mo><mtext>sim</mtext><mo>(</mo><mi>q</mi><mo separator="true">,</mo><msup><mi>d</mi><mo>−</mo></msup><mo>)</mo><mi mathvariant="normal">/</mi><mi>τ</mi><mo>)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">\mathcal{L} = -\log \frac{\exp(\text{sim}(q, d^+) / \tau)}{\exp(\text{sim}(q, d^+) / \tau) + \sum \exp(\text{sim}(q, d^-) / \tau)}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord"><span class="mord mathcal">L</span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.384341em;vertical-align:-0.93601em;"></span><span class="mord">−</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.448331em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mop">exp</span><span class="mopen">(</span><span class="mord text"><span class="mord">sim</span></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03588em;">q</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">d</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.697331em;"><span style="top:-2.989em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">+</span></span></span></span></span></span></span></span><span class="mclose">)</span><span class="mord">/</span><span class="mord mathdefault" style="margin-right:0.1132em;">τ</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∑</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">exp</span><span class="mopen">(</span><span class="mord text"><span class="mord">sim</span></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03588em;">q</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">d</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.697331em;"><span style="top:-2.989em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">−</span></span></span></span></span></span></span></span><span class="mclose">)</span><span class="mord">/</span><span class="mord mathdefault" style="margin-right:0.1132em;">τ</span><span class="mclose">)</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mop">exp</span><span class="mopen">(</span><span class="mord text"><span class="mord">sim</span></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03588em;">q</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">d</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.771331em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">+</span></span></span></span></span></span></span></span><span class="mclose">)</span><span class="mord">/</span><span class="mord mathdefault" style="margin-right:0.1132em;">τ</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.93601em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<ul>
+<li>随机负例 (Random Negatives): 训练时负例通常是 batch 内的其他文档（如 &quot;history book&quot;）。模型只需学会“词汇匹配”即可区分。</li>
+<li>缺乏硬负例 (Lack of Hard Negatives): 模型几乎从未遇到过“逻辑硬负例”（即包含 &quot;sugar&quot; 但语义肯定的文档作为 &quot;without sugar&quot; 的负例）。</li>
+<li>捷径学习 (Shortcut Learning): 模型学到了虚假相关性 <code>{cookie, sugar} -&gt; Relevant</code>，且从未因误判 &quot;with sugar&quot; 而受到惩罚。这导致“否定”维度的特征坍缩 (Feature Collapse)。</li>
+</ul>
+<h3 id="dosc-的定位几何补偿">🔗 DOSC 的定位：几何补偿</h3>
+<ul>
+<li>Post-hoc Geometric Compensation (事后几何补偿):
+<ul>
+<li>训练阶段没能把 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mover accent="true"><mi>v</mi><mo>⃗</mo></mover><mrow><mi>q</mi><mi>u</mi><mi>e</mi><mi>r</mi><mi>y</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\vec{v}_{query}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.000108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.714em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.20772em;"><span class="overlay" style="height:0.714em;width:0.471em;"><svg width='0.471em' height='0.714em' style='width:0.471em' viewBox='0 0 471 714' preserveAspectRatio='xMinYMin'><path d='M377 20c0-5.333 1.833-10 5.5-14S391 0 397 0c4.667 0 8.667 1.667 12 5
+3.333 2.667 6.667 9 10 19 6.667 24.667 20.333 43.667 41 57 7.333 4.667 11
+10.667 11 18 0 6-1 10-3 12s-6.667 5-14 9c-28.667 14.667-53.667 35.667-75 63
+-1.333 1.333-3.167 3.5-5.5 6.5s-4 4.833-5 5.5c-1 .667-2.5 1.333-4.5 2s-4.333 1
+-7 1c-4.667 0-9.167-1.833-13.5-5.5S337 184 337 178c0-12.667 15.667-32.333 47-59
+H213l-171-1c-8.667-6-13-12.333-13-19 0-4.667 4.333-11.333 13-20h359
+c-16-25.333-24-45-24-59z'/></svg></span></span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139200000000003em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">q</span><span class="mord mathdefault mtight">u</span><span class="mord mathdefault mtight">e</span><span class="mord mathdefault mtight" style="margin-right:0.02778em;">r</span><span class="mord mathdefault mtight" style="margin-right:0.03588em;">y</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> 推离 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mover accent="true"><mi>v</mi><mo>⃗</mo></mover><mrow><mi>s</mi><mi>u</mi><mi>g</mi><mi>a</mi><mi>r</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\vec{v}_{sugar}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.000108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.714em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.20772em;"><span class="overlay" style="height:0.714em;width:0.471em;"><svg width='0.471em' height='0.714em' style='width:0.471em' viewBox='0 0 471 714' preserveAspectRatio='xMinYMin'><path d='M377 20c0-5.333 1.833-10 5.5-14S391 0 397 0c4.667 0 8.667 1.667 12 5
+3.333 2.667 6.667 9 10 19 6.667 24.667 20.333 43.667 41 57 7.333 4.667 11
+10.667 11 18 0 6-1 10-3 12s-6.667 5-14 9c-28.667 14.667-53.667 35.667-75 63
+-1.333 1.333-3.167 3.5-5.5 6.5s-4 4.833-5 5.5c-1 .667-2.5 1.333-4.5 2s-4.333 1
+-7 1c-4.667 0-9.167-1.833-13.5-5.5S337 184 337 178c0-12.667 15.667-32.333 47-59
+H213l-171-1c-8.667-6-13-12.333-13-19 0-4.667 4.333-11.333 13-20h359
+c-16-25.333-24-45-24-59z'/></svg></span></span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139200000000003em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">s</span><span class="mord mathdefault mtight">u</span><span class="mord mathdefault mtight" style="margin-right:0.03588em;">g</span><span class="mord mathdefault mtight">a</span><span class="mord mathdefault mtight" style="margin-right:0.02778em;">r</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span>（因为缺负例）。</li>
+<li>DOSC 在推理阶段，手动（显式地）执行了这个“推离”动作（正交投影）。</li>
+<li>这是在无法负担海量逻辑对重训练成本下的唯一可行方案。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="5-理论升华神经符号推理-neuro-symbolic-reasoning">5. 理论升华：神经符号推理 (Neuro-symbolic Reasoning)</h2>
+<p>(Theoretical Elevation: Bridging Neural &amp; Symbolic)</p>
+<p>提升论文立意，连接 AI 基础理论。</p>
+<h3 id="核心概念">🧩 核心概念</h3>
+<ul>
+<li>Query2Box (ICLR 2020): 在知识图谱中，把概念看作“盒子（Box）”。否定 (<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="normal">¬</mi></mrow><annotation encoding="application/x-tex">\neg</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord">¬</span></span></span></span>) 操作就是取补集 (Complement)（盒子以外的区域）。</li>
+<li>现状痛点： 神经网络（Neural）擅长直觉但缺乏逻辑；符号系统（Symbolic）擅长逻辑但无法处理模糊数据。</li>
+</ul>
+<h3 id="dosc-的理论桥梁作用">🔗 DOSC 的理论桥梁作用</h3>
+<p>DOSC 处于两者的交界处：</p>
+<ol>
+<li>从“点”到“区域”的哲学： 承认“否定”应该是补集。</li>
+<li>线性代数近似： 在高维欧几里得空间中，让向量 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mover accent="true"><mi>q</mi><mo>⃗</mo></mover></mrow><annotation encoding="application/x-tex">\vec{q}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9084399999999999em;vertical-align:-0.19444em;"></span><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.714em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">q</span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.15216em;"><span class="overlay" style="height:0.714em;width:0.471em;"><svg width='0.471em' height='0.714em' style='width:0.471em' viewBox='0 0 471 714' preserveAspectRatio='xMinYMin'><path d='M377 20c0-5.333 1.833-10 5.5-14S391 0 397 0c4.667 0 8.667 1.667 12 5
+3.333 2.667 6.667 9 10 19 6.667 24.667 20.333 43.667 41 57 7.333 4.667 11
+10.667 11 18 0 6-1 10-3 12s-6.667 5-14 9c-28.667 14.667-53.667 35.667-75 63
+-1.333 1.333-3.167 3.5-5.5 6.5s-4 4.833-5 5.5c-1 .667-2.5 1.333-4.5 2s-4.333 1
+-7 1c-4.667 0-9.167-1.833-13.5-5.5S337 184 337 178c0-12.667 15.667-32.333 47-59
+H213l-171-1c-8.667-6-13-12.333-13-19 0-4.667 4.333-11.333 13-20h359
+c-16-25.333-24-45-24-59z'/></svg></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.19444em;"><span></span></span></span></span></span></span></span></span> 与概念 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mover accent="true"><mi>n</mi><mo>⃗</mo></mover></mrow><annotation encoding="application/x-tex">\vec{n}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.714em;vertical-align:0em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.714em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">n</span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.2355em;"><span class="overlay" style="height:0.714em;width:0.471em;"><svg width='0.471em' height='0.714em' style='width:0.471em' viewBox='0 0 471 714' preserveAspectRatio='xMinYMin'><path d='M377 20c0-5.333 1.833-10 5.5-14S391 0 397 0c4.667 0 8.667 1.667 12 5
+3.333 2.667 6.667 9 10 19 6.667 24.667 20.333 43.667 41 57 7.333 4.667 11
+10.667 11 18 0 6-1 10-3 12s-6.667 5-14 9c-28.667 14.667-53.667 35.667-75 63
+-1.333 1.333-3.167 3.5-5.5 6.5s-4 4.833-5 5.5c-1 .667-2.5 1.333-4.5 2s-4.333 1
+-7 1c-4.667 0-9.167-1.833-13.5-5.5S337 184 337 178c0-12.667 15.667-32.333 47-59
+H213l-171-1c-8.667-6-13-12.333-13-19 0-4.667 4.333-11.333 13-20h359
+c-16-25.333-24-45-24-59z'/></svg></span></span></span></span></span></span></span></span></span></span> “毫无关系”（处于补集），最数学化的表达就是垂直（正交）。</li>
+<li>论文论述策略：
+<ul>
+<li>轻量级神经符号干预： DOSC 不需要沉重的符号解析器，而是直接在神经流形中操作。</li>
+<li>软逻辑与硬逻辑结合： 编码器负责“软语义”（丰富性），投影层负责“硬几何约束”（逻辑有效性）。</li>
+<li>DOSC is a linear algebraic approximation of the set-theoretic negation operator.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="6-关键参考文献-references">6. 关键参考文献 (References)</h2>
+<ol>
+<li>[Concept Erasure] Ravfogel et al. (2020). Null It Out: Guarding Protected Attributes by Iterative Nullspace Projection (INLP). ACL.</li>
+<li>[Anisotropy] Ethayarajh, K. (2019). How Contextual are Contextualized Word Representations?. EMNLP.</li>
+<li>[Hard Negatives] Robinson et al. (2020). Contrastive Learning with Hard Negative Samples. ICLR.</li>
+<li>[Shortcut Learning] Geirhos et al. (2020). Shortcut Learning in Deep Neural Networks. Nature Machine Intelligence.</li>
+<li>[Neuro-symbolic] Ren et al. (2020). Query2Box: Reasoning over Knowledge Graphs in Vector Space Using Box Embeddings. ICLR.</li>
+</ol>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%B7%B1%E5%BA%A6%E6%89%B9%E5%88%A4%E9%92%88%E5%AF%B9%E6%94%BE%E5%A4%A7%E5%90%A6%E5%AE%9A%E8%AF%8D%E7%BB%B4%E5%BA%A6%E5%81%87%E8%AE%BE%E7%9A%84%E9%A9%B3%E6%96%A5">1. 深度批判：针对“放大否定词维度”假设的驳斥</a>
+<ul>
+<li><a href="#%E8%AE%BA%E7%82%B9%E4%B8%80%E6%96%B9%E5%90%91%E8%B0%AC%E8%AF%AF-the-directional-fallacy">🔴 论点一：方向谬误 (The Directional Fallacy)</a></li>
+<li><a href="#%E8%AE%BA%E7%82%B9%E4%BA%8C%E7%AE%97%E5%AD%90%E9%94%99%E4%BD%8D-the-operator-feature-mismatch">🔴 论点二：算子错位 (The Operator-Feature Mismatch)</a></li>
+<li><a href="#%E8%AE%BA%E7%82%B9%E4%B8%89%E7%BB%B4%E5%BA%A6%E7%BA%A0%E7%BC%A0%E4%B8%8E%E8%AF%AD%E6%B3%95%E5%99%AA%E9%9F%B3-dimensional-entanglement-syntactic-noise">🔴 论点三：维度纠缠与语法噪音 (Dimensional Entanglement &amp; Syntactic Noise)</a></li>
+</ul>
+</li>
+<li><a href="#2-%E7%90%86%E8%AE%BA%E6%94%AF%E6%9F%B1-i%E7%BA%BF%E6%80%A7%E6%A6%82%E5%BF%B5%E6%93%A6%E9%99%A4-linear-concept-erasure">2. 理论支柱 I：线性概念擦除 (Linear Concept Erasure)</a>
+<ul>
+<li><a href="#%E6%A0%B8%E5%BF%83%E8%AE%BA%E6%96%87">📄 核心论文</a></li>
+<li><a href="#%EF%B8%8F-inlp-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86">⚙️ INLP 工作原理</a></li>
+<li><a href="#dosc-%E4%B8%8E-inlp-%E7%9A%84%E5%85%B3%E7%B3%BB%E8%AE%BA%E6%96%87%E8%AE%BA%E8%BF%B0%E7%82%B9">🔗 DOSC 与 INLP 的关系（论文论述点）</a></li>
+</ul>
+</li>
+<li><a href="#3-%E7%90%86%E8%AE%BA%E6%94%AF%E6%9F%B1-ii%E5%B5%8C%E5%85%A5%E7%A9%BA%E9%97%B4%E7%9A%84%E5%90%84%E5%90%91%E5%BC%82%E6%80%A7-representation-anisotropy">3. 理论支柱 II：嵌入空间的各向异性 (Representation Anisotropy)</a>
+<ul>
+<li><a href="#%E6%A0%B8%E5%BF%83%E8%AE%BA%E6%96%87-2">📄 核心论文</a></li>
+<li><a href="#%E6%A6%82%E5%BF%B5%E8%A7%A3%E6%9E%90">📐 概念解析</a></li>
+<li><a href="#dosc-%E7%9A%84%E4%BD%9C%E7%94%A8">🔗 DOSC 的作用</a></li>
+</ul>
+</li>
+<li><a href="#4-%E7%90%86%E8%AE%BA%E6%94%AF%E6%9F%B1-iii%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0%E4%B8%AD%E7%9A%84%E9%87%87%E6%A0%B7%E5%81%8F%E5%B7%AE-sampling-bias">4. 理论支柱 III：对比学习中的采样偏差 (Sampling Bias)</a>
+<ul>
+<li><a href="#%E6%A0%B8%E5%BF%83%E9%97%AE%E9%A2%98infonce-loss-%E7%9A%84%E7%BC%BA%E9%99%B7">📉 核心问题：InfoNCE Loss 的缺陷</a></li>
+<li><a href="#dosc-%E7%9A%84%E5%AE%9A%E4%BD%8D%E5%87%A0%E4%BD%95%E8%A1%A5%E5%81%BF">🔗 DOSC 的定位：几何补偿</a></li>
+</ul>
+</li>
+<li><a href="#5-%E7%90%86%E8%AE%BA%E5%8D%87%E5%8D%8E%E7%A5%9E%E7%BB%8F%E7%AC%A6%E5%8F%B7%E6%8E%A8%E7%90%86-neuro-symbolic-reasoning">5. 理论升华：神经符号推理 (Neuro-symbolic Reasoning)</a>
+<ul>
+<li><a href="#%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5">🧩 核心概念</a></li>
+<li><a href="#dosc-%E7%9A%84%E7%90%86%E8%AE%BA%E6%A1%A5%E6%A2%81%E4%BD%9C%E7%94%A8">🔗 DOSC 的理论桥梁作用</a></li>
+</ul>
+</li>
+<li><a href="#6-%E5%85%B3%E9%94%AE%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE-references">6. 关键参考文献 (References)</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://Alive-mk.github.io/post/acl2026/">
+              <h3 class="post-title">
+                ACL2026
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://Alive-mk.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

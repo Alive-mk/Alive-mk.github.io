@@ -1,0 +1,908 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ReAct &amp; Toolformer | Alive-mk</title>
+<link rel="shortcut icon" href="https://Alive-mk.github.io/favicon.ico?v=1770951170092">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://Alive-mk.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="ReAct &amp; Toolformer | Alive-mk - Atom Feed" href="https://Alive-mk.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="1. 核心概念与论文溯源 (Concept &amp; Paper Roots)
+A. 核心论文 (The Papers)
+这部分涉及两篇里程碑式的论文，面试时必须能准确说出名字：
+
+ReAct (2023): &quot;ReAct: S..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://Alive-mk.github.io">
+  <img class="avatar" src="https://Alive-mk.github.io/images/avatar.png?v=1770951170092" alt="">
+  </a>
+  <h1 class="site-title">
+    Alive-mk
+  </h1>
+  <p class="site-description">
+    温故而知新
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              ReAct &amp; Toolformer
+            </h2>
+            <div class="post-info">
+              <span>
+                2026-02-13
+              </span>
+              <span>
+                32 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <h3 id="1-核心概念与论文溯源-concept-paper-roots">1. 核心概念与论文溯源 (Concept &amp; Paper Roots)</h3>
+<h4 id="a-核心论文-the-papers"><strong>A. 核心论文 (The Papers)</strong></h4>
+<p>这部分涉及两篇里程碑式的论文，面试时<strong>必须</strong>能准确说出名字：</p>
+<ol>
+<li><strong>ReAct (2023)</strong>: <em>&quot;ReAct: Synergizing Reasoning and Acting in Language Models&quot;</em>
+<ul>
+<li><strong>来源</strong>: ICLR 2023 (Google Research &amp; Princeton)</li>
+<li><strong>链接</strong>: <a href="https://arxiv.org/abs/2210.03629">arXiv:2210.03629</a></li>
+</ul>
+</li>
+<li><strong>Toolformer (2023)</strong>: <em>&quot;Toolformer: Language Models Can Teach Themselves to Use Tools&quot;</em>
+<ul>
+<li><strong>来源</strong>: NeurIPS 2023 (Meta AI)</li>
+<li><strong>链接</strong>: <a href="https://arxiv.org/abs/2302.04761">arXiv:2302.04761</a></li>
+</ul>
+</li>
+</ol>
+<h4 id="b-本质概括-the-essence"><strong>B. 本质概括 (The Essence)</strong></h4>
+<ul>
+<li><strong>ReAct</strong>: 是 <strong>CoT (Chain of Thought)</strong> 与 <strong>Action Plan</strong> 的结合体。本质上是将模型的推理轨迹解耦为 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mtext>Thought</mtext><mo>→</mo><mtext>Action</mtext><mo>→</mo><mtext>Observation</mtext></mrow><annotation encoding="application/x-tex">\text{Thought} \rightarrow \text{Action} \rightarrow \text{Observation}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord text"><span class="mord">Thought</span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord text"><span class="mord">Action</span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord text"><span class="mord">Observation</span></span></span></span></span> 的循环闭环。</li>
+<li><strong>Toolformer</strong>: 是一种<strong>自监督学习 (Self-Supervised Learning)</strong> 方法。本质上是让模型学会“预测何时调用API以及填什么参数”，通过计算 Loss 来将工具调用能力内化到模型权重中。</li>
+</ul>
+<h4 id="c-痛点解决-problem-solving"><strong>C. 痛点解决 (Problem Solving)</strong></h4>
+<ul>
+<li><strong>ReAct 解决的痛点</strong>:
+<ul>
+<li><strong>CoT 的幻觉 (Hallucination)</strong>: 纯推理容易一本正经地胡说八道。ReAct 通过 <code>Observation</code> 引入外部真实信息来修正推理。</li>
+<li><strong>传统 Action 的盲目性</strong>: 单纯的动作执行（如 WebGPT）缺乏高层规划。ReAct 强制模型在行动前先生成 <code>Thought</code>，提高了可解释性和成功率。</li>
+</ul>
+</li>
+<li><strong>Toolformer 解决的痛点</strong>:
+<ul>
+<li><strong>In-Context Learning 依赖</strong>: ReAct 通常需要 Few-shot Prompt，占用 Context Window 且推理成本高。Toolformer 通过微调（Fine-tuning），让模型<strong>零样本 (Zero-shot)</strong> 就能调用工具，且保持了通用语言能力。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="2-数学原理与推导-mathematical-underpinning">2. 数学原理与推导 (Mathematical Underpinning)</h3>
+<h4 id="a-react-的轨迹建模"><strong>A. ReAct 的轨迹建模</strong></h4>
+<p>在 ReAct 中，我们把解决问题的过程看作一个决策过程（Decision Making Process）。</p>
+<p>定义：</p>
+<ul>
+<li><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>c</mi></mrow><annotation encoding="application/x-tex">c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">c</span></span></span></span>: 上下文 (Context) 或输入的问题。</li>
+<li><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="script">A</mi></mrow><annotation encoding="application/x-tex">\mathcal{A}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord"><span class="mord mathcal">A</span></span></span></span></span>: 动作空间 (Action Space)，例如 <code>Search[entity]</code>, <code>Calculate[expression]</code>.</li>
+<li><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="script">T</mi></mrow><annotation encoding="application/x-tex">\mathcal{T}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord"><span class="mord mathcal" style="margin-right:0.25417em;">T</span></span></span></span></span>: 思考空间 (Thought Space)，即自然语言推理。</li>
+<li><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="script">O</mi></mrow><annotation encoding="application/x-tex">\mathcal{O}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord"><span class="mord mathcal" style="margin-right:0.02778em;">O</span></span></span></span></span>: 观察空间 (Observation Space)，即工具返回的结果。</li>
+</ul>
+<p>传统的推理（CoT）轨迹是：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>τ</mi><mrow><mi>C</mi><mi>o</mi><mi>T</mi></mrow></msub><mo>=</mo><mo>(</mo><msub><mi>t</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>t</mi><mn>2</mn></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>t</mi><mi>n</mi></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">\tau_{CoT} = (t_1, t_2, \dots, t_n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.1132em;">τ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.1132em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.07153em;">C</span><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight" style="margin-right:0.13889em;">T</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>。</p>
+<p>ReAct 的轨迹 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>τ</mi></mrow><annotation encoding="application/x-tex">\tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.1132em;">τ</span></span></span></span> 是交替的：</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>τ</mi><mo>=</mo><mo>(</mo><msub><mi>t</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>a</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>o</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>t</mi><mn>2</mn></msub><mo separator="true">,</mo><msub><mi>a</mi><mn>2</mn></msub><mo separator="true">,</mo><msub><mi>o</mi><mn>2</mn></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>t</mi><mi>n</mi></msub><mo separator="true">,</mo><msub><mi>a</mi><mi>n</mi></msub><mo separator="true">,</mo><msub><mi>o</mi><mi>n</mi></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">\tau = (t_1, a_1, o_1, t_2, a_2, o_2, \dots, t_n, a_n, o_n)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.1132em;">τ</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></span></p>
+<p>模型的策略 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>π</mi><mi>θ</mi></msub></mrow><annotation encoding="application/x-tex">\pi_\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 需要最大化生成该轨迹的概率：</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mover accent="true"><mi>a</mi><mo>^</mo></mover><mi>t</mi></msub><mo>=</mo><mi>arg</mi><mo>⁡</mo><munder><mi>max</mi><mo>⁡</mo><mrow><mi>a</mi><mo>∈</mo><mi mathvariant="script">A</mi></mrow></munder><msub><mi>P</mi><mi>θ</mi></msub><mo>(</mo><msub><mi>a</mi><mi>t</mi></msub><mi mathvariant="normal">∣</mi><mi>c</mi><mo separator="true">,</mo><msub><mi>t</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>a</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>o</mi><mn>1</mn></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>t</mi><mi>t</mi></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">\hat{a}_t = \arg\max_{a \in \mathcal{A}} P_\theta(a_t | c, t_1, a_1, o_1, \dots, t_t)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.69444em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">a</span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.25em;">^</span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.521701em;vertical-align:-0.771701em;"></span><span class="mop">ar<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.43055999999999994em;"><span style="top:-2.055669em;margin-left:0em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">a</span><span class="mrel mtight">∈</span><span class="mord mtight"><span class="mord mathcal mtight">A</span></span></span></span></span><span style="top:-2.7em;"><span class="pstrut" style="height:2.7em;"></span><span><span class="mop">max</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.771701em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mord mathdefault">c</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></span></p>
+<p><strong>面试官视角的数学直觉</strong>:</p>
+<p>ReAct 的核心在于<strong>条件概率的扩充</strong>。传统的 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>P</mi><mo>(</mo><mi>N</mi><mi>e</mi><mi>x</mi><mi>t</mi><mi>T</mi><mi>o</mi><mi>k</mi><mi>e</mi><mi>n</mi><mi mathvariant="normal">∣</mi><mi>C</mi><mi>o</mi><mi>n</mi><mi>t</mi><mi>e</mi><mi>x</mi><mi>t</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">P(NextToken | Context)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.13889em;">P</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mord mathdefault">e</span><span class="mord mathdefault">x</span><span class="mord mathdefault">t</span><span class="mord mathdefault" style="margin-right:0.13889em;">T</span><span class="mord mathdefault">o</span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mord mathdefault">e</span><span class="mord mathdefault">n</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="mord mathdefault">o</span><span class="mord mathdefault">n</span><span class="mord mathdefault">t</span><span class="mord mathdefault">e</span><span class="mord mathdefault">x</span><span class="mord mathdefault">t</span><span class="mclose">)</span></span></span></span> 可能会发散。ReAct 强制插入了 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>o</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">o_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>（来自环境的硬约束），使得 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>P</mi><mo>(</mo><msub><mi>t</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><mi mathvariant="normal">∣</mi><mo>…</mo><mo separator="true">,</mo><msub><mi>o</mi><mi>t</mi></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">P(t_{t+1} | \dots, o_t)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.13889em;">P</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.301108em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.208331em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> 的分布迅速收敛到事实真值附近。这在控制理论中类似于引入了“反馈环 (Feedback Loop)”。</p>
+<blockquote>
+<p>这看起来是一段非常硬核的算法面试材料，涉及到强化学习（RL）与大语言模型（LLM）结合的核心逻辑。这段描述本质上是将 LLM 从一个“只会说话的机器”重新定义为一个“能与世界互动的智能体”。</p>
+<p>让我们先拆解这些学术定义，然后再用通俗的语言把它们串起来。</p>
+<h3 id="第一部分深度学术解析">第一部分：深度学术解析</h3>
+<p>在 ReAct (Reasoning + Acting) 框架中，我们将文本生成任务重新建模为一个<strong>序列决策问题 (Sequential Decision Making Process)</strong>。这通常借用了马尔可夫决策过程 (MDP) 的概念。</p>
+<p>以下是关键术语的详细拆解：</p>
+<ol>
+<li><strong>决策过程 (Decision Making Process)</strong>
+<ul>
+<li><strong>定义</strong>：指智能体（Agent）在特定环境下，通过观察状态、采取行动并获得反馈，从而达到某个目标的动态过程。</li>
+<li><strong>在 LLM 中</strong>：传统的 LLM 只是预测下一个字（Next Token Prediction）；而在 ReAct 中，模型每一步都在做“决策”——是继续推理（Thinking），还是调用工具（Acting），亦或是结束任务。</li>
+</ul>
+</li>
+<li><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>c</mi></mrow><annotation encoding="application/x-tex">c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">c</span></span></span></span>: 上下文 (Context)</strong>
+<ul>
+<li><strong>学术含义</strong>：状态空间的一部分，通常指初始输入的 Prompt 或用户的问题（Query）。它是轨迹的起点。</li>
+</ul>
+</li>
+<li><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="script">A</mi></mrow><annotation encoding="application/x-tex">\mathcal{A}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord"><span class="mord mathcal">A</span></span></span></span></span>: 动作空间 (Action Space)</strong>
+<ul>
+<li><strong>学术含义</strong>：智能体可以执行的所有合法操作的集合。</li>
+<li><strong>详解</strong>：在 ReAct 中，这是一个离散的集合。例如 <code>Search[Wikipedia]</code> 是一个动作，<code>Calculate[1+1]</code> 是另一个动作。这区别于单纯的文本生成，因为动作会触发外部系统的响应。</li>
+</ul>
+</li>
+<li><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="script">T</mi></mrow><annotation encoding="application/x-tex">\mathcal{T}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord"><span class="mord mathcal" style="margin-right:0.25417em;">T</span></span></span></span></span>: 思考空间 (Thought Space)</strong>
+<ul>
+<li><strong>学术含义</strong>：这是 ReAct 的创新点。它允许模型在执行动作前生成一段自然语言（Internal Monologue）。</li>
+<li><strong>作用</strong>：它不直接改变环境，而是改变智能体的“内部状态”。这相当于思维链（CoT），用于规划下一步或分解复杂问题。</li>
+</ul>
+</li>
+<li><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="script">O</mi></mrow><annotation encoding="application/x-tex">\mathcal{O}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord"><span class="mord mathcal" style="margin-right:0.02778em;">O</span></span></span></span></span>: 观察空间 (Observation Space)</strong>
+<ul>
+<li><strong>学术含义</strong>：环境对智能体动作的反馈（Feedback）。</li>
+<li><strong>关键点</strong>：这是<strong>来自外部世界的信息</strong>（Ground Truth）。比如 API 返回的搜索结果或计算器的输出。它不仅是信息，更是对模型幻觉（Hallucination）的一种“纠正”。</li>
+</ul>
+</li>
+<li><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>τ</mi></mrow><annotation encoding="application/x-tex">\tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.1132em;">τ</span></span></span></span>: 轨迹 (Trajectory)</strong>
+<ul>
+<li><strong>学术含义</strong>：从问题开始到解决结束的一系列状态和动作的序列。</li>
+<li><strong>对比</strong>：
+<ul>
+<li><strong>CoT 轨迹</strong> <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>τ</mi><mrow><mi>C</mi><mi>o</mi><mi>T</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\tau_{CoT}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.1132em;">τ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.1132em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.07153em;">C</span><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight" style="margin-right:0.13889em;">T</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>：只有思考 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><msub><mi>t</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>t</mi><mn>2</mn></msub><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">(t_1, t_2...)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">.</span><span class="mord">.</span><span class="mord">.</span><span class="mclose">)</span></span></span></span>，是一个封闭的自言自语过程。</li>
+<li><strong>ReAct 轨迹</strong> <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>τ</mi></mrow><annotation encoding="application/x-tex">\tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.1132em;">τ</span></span></span></span>：是 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mi>t</mi><mo separator="true">,</mo><mi>a</mi><mo separator="true">,</mo><mi>o</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">(t, a, o)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault">t</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">a</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">o</span><span class="mclose">)</span></span></span></span> 的循环。思考 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>→</mo></mrow><annotation encoding="application/x-tex">\rightarrow</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">→</span></span></span></span> 动作 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>→</mo></mrow><annotation encoding="application/x-tex">\rightarrow</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">→</span></span></span></span> 观察 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>→</mo></mrow><annotation encoding="application/x-tex">\rightarrow</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">→</span></span></span></span> 再思考。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>π</mi><mi>θ</mi></msub></mrow><annotation encoding="application/x-tex">\pi_\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>: 策略 (Policy)</strong>
+<ul>
+<li><strong>学术含义</strong>：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>π</mi></mrow><annotation encoding="application/x-tex">\pi</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">π</span></span></span></span> 代表策略函数，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>θ</mi></mrow><annotation encoding="application/x-tex">\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">θ</span></span></span></span> 代表模型的参数（权重）。</li>
+<li><strong>公式解读</strong>：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mover accent="true"><mi>a</mi><mo>^</mo></mover><mi>t</mi></msub><mo>=</mo><mi>arg</mi><mo>⁡</mo><msub><mi>max</mi><mo>⁡</mo><mrow><mi>a</mi><mo>∈</mo><mi mathvariant="script">A</mi></mrow></msub><msub><mi>P</mi><mi>θ</mi></msub><mo>(</mo><msub><mi>a</mi><mi>t</mi></msub><mi mathvariant="normal">∣</mi><mi>c</mi><mo separator="true">,</mo><mo>…</mo><mtext> </mtext><mo>)</mo></mrow><annotation encoding="application/x-tex">\hat{a}_t = \arg\max_{a \in \mathcal{A}} P_\theta(a_t | c, \dots)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.69444em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">a</span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.25em;">^</span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">ar<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop"><span class="mop">max</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">a</span><span class="mrel mtight">∈</span><span class="mord mtight"><span class="mord mathcal mtight">A</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.17737em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mord mathdefault">c</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mclose">)</span></span></span></span>
+<ul>
+<li>这表示我们需要找到一个动作 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>a</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">a_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，使得在当前上下文（包括之前所有的思考、动作和观察）下，该动作发生的概率最大。简单说，就是让 LLM 根据历史记录预测最佳的下一步行动。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>控制理论中的“反馈环” (Feedback Loop)</strong>
+<ul>
+<li><strong>学术含义</strong>：在控制系统中，将系统的输出（Output）经过测量后返回到输入端（Input），与期望值进行比较，用以修正系统的误差。</li>
+<li><strong>ReAct 中</strong>：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>o</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">o_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>（观察）就是反馈。如果模型推理错了（比如以为现在的英国首相还是鲍里斯），但 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>o</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">o_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>（搜索结果）显示是斯塔默，模型就会根据这个“硬约束”修正后续的 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>t</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub></mrow><annotation encoding="application/x-tex">t_{t+1}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8234109999999999em;vertical-align:-0.208331em;"></span><span class="mord"><span class="mord mathdefault">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.301108em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.208331em;"><span></span></span></span></span></span></span></span></span></span>（思考）。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="第二部分通俗易懂的解释人话版">第二部分：通俗易懂的解释（人话版）</h3>
+<p>想象你在<strong>做一道很难的开卷考试题</strong>。</p>
+<ul>
+<li><strong>传统的 CoT (思维链)</strong> 就像是你<strong>闭着眼睛做题</strong>。
+<ul>
+<li>你完全靠脑子里的记忆（模型权重）在推理。</li>
+<li>你会写下：“我想第一步是A，所以第二步是B...”。</li>
+<li><strong>风险</strong>：如果你第一步记错了，后面所有的推理都会跟着错（这就是“发散”），而且你自己不知道，因为你没法看书验证。</li>
+</ul>
+</li>
+<li><strong>ReAct (推理 + 行动)</strong> 就像是你<strong>睁开眼睛，旁边还放着百科全书和计算器</strong>。
+<ul>
+<li><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>c</mi></mrow><annotation encoding="application/x-tex">c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">c</span></span></span></span> (上下文)</strong>：卷子上的题目。</li>
+<li><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="script">T</mi></mrow><annotation encoding="application/x-tex">\mathcal{T}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord"><span class="mord mathcal" style="margin-right:0.25417em;">T</span></span></span></span></span> (思考)</strong>：你自言自语：“这题问的是2023年的GDP，我记不清了，我得查一下。”</li>
+<li><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="script">A</mi></mrow><annotation encoding="application/x-tex">\mathcal{A}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord"><span class="mord mathcal">A</span></span></span></span></span> (动作)</strong>：你去翻书（Search）或者按计算器（Calculate）。</li>
+<li><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="script">O</mi></mrow><annotation encoding="application/x-tex">\mathcal{O}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord"><span class="mord mathcal" style="margin-right:0.02778em;">O</span></span></span></span></span> (观察)</strong>：书上白纸黑字写着的数字，或者计算器屏幕上显示的结果。</li>
+<li><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>τ</mi></mrow><annotation encoding="application/x-tex">\tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.1132em;">τ</span></span></span></span> (轨迹)</strong>：你的解题过程是：想 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>→</mo></mrow><annotation encoding="application/x-tex">\rightarrow</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">→</span></span></span></span> 翻书 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>→</mo></mrow><annotation encoding="application/x-tex">\rightarrow</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">→</span></span></span></span> 看到结果 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>→</mo></mrow><annotation encoding="application/x-tex">\rightarrow</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">→</span></span></span></span> 再想 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>→</mo></mrow><annotation encoding="application/x-tex">\rightarrow</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">→</span></span></span></span> 写答案。</li>
+</ul>
+</li>
+</ul>
+<p><strong>为什么面试官说这解决了“发散”？</strong></p>
+<p>闭眼做题（CoT）时，你一旦开始胡思乱想，就会越跑越偏。但 ReAct 模式下，你每翻一次书（<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>o</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">o_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>），书上的真实内容就会把你从“胡思乱想”中强行拉回到现实中来。这就是所谓的“硬约束”和“反馈环”。</p>
+</blockquote>
+<h4 id="b-toolformer-的自监督损失"><strong>B. Toolformer 的自监督损失</strong></h4>
+<p>Toolformer 的核心也是最大化似然估计 (MLE)，但它引入了基于工具效用的加权。</p>
+<p>假设输入文本为 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>x</mi></mrow><annotation encoding="application/x-tex">x</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">x</span></span></span></span>，位置 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathdefault">i</span></span></span></span> 处插入工具调用 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>c</mi><mo>=</mo><mo>(</mo><msub><mi>a</mi><mi>i</mi></msub><mo separator="true">,</mo><msub><mi>r</mi><mi>i</mi></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">c = (a_i, r_i)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">c</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>，其中 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>a</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">a_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 是 API 调用，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>r</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">r_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 是返回值。</p>
+<p>Toolformer 构造了一个<strong>加权损失函数</strong>。它只在工具调用能显著降低后续文本的 Perplexity (困惑度) 时才进行学习。</p>
+<p>定义收益 (Benefit) 为工具调用带来的 Loss 降低量：</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msubsup><mi>L</mi><mi>t</mi><mo>−</mo></msubsup><mo>=</mo><mi>L</mi><mo>(</mo><mi>x</mi><mi mathvariant="normal">∣</mi><mi mathvariant="normal">∅</mi><mo>)</mo><mo>−</mo><mi>min</mi><mo>⁡</mo><mo>(</mo><mi>L</mi><mo>(</mo><mi>x</mi><mi mathvariant="normal">∣</mi><msub><mi>a</mi><mi>i</mi></msub><mo separator="true">,</mo><mi mathvariant="normal">∅</mi><mo>)</mo><mo separator="true">,</mo><mi>L</mi><mo>(</mo><mi>x</mi><mi mathvariant="normal">∣</mi><msub><mi>a</mi><mi>i</mi></msub><mo separator="true">,</mo><msub><mi>r</mi><mi>i</mi></msub><mo>)</mo><mo>)</mo></mrow><annotation encoding="application/x-tex">L_{t}^{-} = L(x | \emptyset) - \min(L(x | a_i, \emptyset), L(x | a_i, r_i))
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.068331em;vertical-align:-0.247em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8213309999999999em;"><span style="top:-2.4530000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">L</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mord">∣</span><span class="mord">∅</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">min</span><span class="mopen">(</span><span class="mord mathdefault">L</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mord">∣</span><span class="mord"><span class="mord mathdefault">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">∅</span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">L</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mord">∣</span><span class="mord"><span class="mord mathdefault">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mclose">)</span></span></span></span></span></p>
+<ul>
+<li>
+<p>若 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msubsup><mi>L</mi><mi>t</mi><mo>−</mo></msubsup></mrow><annotation encoding="application/x-tex">L_{t}^{-}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.057218em;vertical-align:-0.24575599999999997em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.811462em;"><span style="top:-2.454244em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span style="top:-3.1031310000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.24575599999999997em;"><span></span></span></span></span></span></span></span></span></span> 大于阈值，说明该工具有用。</p>
+</li>
+<li>
+<p>如果是这样，我们将该样本加入微调数据集，优化标准的交叉熵损失 (Cross Entropy Loss)：</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="script">L</mi><mo>=</mo><mo>−</mo><munder><mo>∑</mo><mi>j</mi></munder><mi>log</mi><mo>⁡</mo><msub><mi>P</mi><mi>θ</mi></msub><mo>(</mo><msub><mi>x</mi><mi>j</mi></msub><mi mathvariant="normal">∣</mi><msub><mi>x</mi><mrow><mn>1</mn><mo>:</mo><mi>j</mi><mo>−</mo><mn>1</mn></mrow></msub><mo separator="true">,</mo><mtext>with API calls</mtext><mo>)</mo></mrow><annotation encoding="application/x-tex">\mathcal{L} = - \sum_{j} \log P_\theta(x_j | x_{1:j-1}, \text{with API calls})
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord"><span class="mord mathcal">L</span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.463782em;vertical-align:-1.413777em;"></span><span class="mord">−</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.050005em;"><span style="top:-1.8723309999999997em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.05724em;">j</span></span></span></span><span style="top:-3.0500049999999996em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.413777em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mrel mtight">:</span><span class="mord mathdefault mtight" style="margin-right:0.05724em;">j</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord text"><span class="mord">with API calls</span></span><span class="mclose">)</span></span></span></span></span></p>
+</li>
+</ul>
+<blockquote>
+<p>这一段描述了 Toolformer 论文中最精华的**“自我过滤”机制**。</p>
+<p>Toolformer 不需要人类去标注“哪句话该用计算器，哪句话该用搜索”，而是让模型自己去试，然后通过数学计算来判断“这次尝试是不是真的帮我更准确地猜出了后面的字”。</p>
+<p>以下是深度解析：</p>
+<hr>
+<h3 id="第一部分深度学术解析-academic-deep-dive">第一部分：深度学术解析 (Academic Deep Dive)</h3>
+<p>Toolformer 的核心思想是 <strong>Self-Supervised Learning (自监督学习)</strong> 在工具使用上的应用。它试图通过构建一个<strong>基于信息增益 (Information Gain)</strong> 的过滤机制，自动生成高质量的微调数据集。</p>
+<h4 id="1-核心定义拆解">1. 核心定义拆解</h4>
+<ul>
+<li><strong>最大化似然估计 (MLE, Maximum Likelihood Estimation)</strong>
+<ul>
+<li>这是所有大语言模型（LLM）训练的基础目标。即最大化模型 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>P</mi><mi>θ</mi></msub></mrow><annotation encoding="application/x-tex">P_\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 预测出训练集真实文本 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>x</mi></mrow><annotation encoding="application/x-tex">x</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">x</span></span></span></span> 的概率。</li>
+<li>在 Toolformer 中，我们希望最大化的是 <strong>包含了正确 API 调用</strong> 的文本序列的概率。</li>
+</ul>
+</li>
+<li><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>x</mi></mrow><annotation encoding="application/x-tex">x</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">x</span></span></span></span>: 输入文本 (Input Text)</strong>
+<ul>
+<li>这是原始的训练语料（没有工具调用的纯文本）。例如：“The capital of France is Paris.”</li>
+</ul>
+</li>
+<li><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>c</mi><mo>=</mo><mo>(</mo><msub><mi>a</mi><mi>i</mi></msub><mo separator="true">,</mo><msub><mi>r</mi><mi>i</mi></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">c = (a_i, r_i)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">c</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>: 工具调用 (Tool Call)</strong>
+<ul>
+<li><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>a</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">a_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (Action)</strong>: API 的调用命令。例如 <code>WikiSearch(&quot;France&quot;)</code>。</li>
+<li><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>r</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">r_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (Result)</strong>: API 返回的实际结果。例如 <code>Paris</code>。</li>
+<li><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathdefault">i</span></span></span></span> (Position)</strong>: 插入工具调用的位置。</li>
+</ul>
+</li>
+<li><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>L</mi><mo>(</mo><mi>x</mi><mi mathvariant="normal">∣</mi><mo>…</mo><mtext> </mtext><mo>)</mo></mrow><annotation encoding="application/x-tex">L(x | \dots)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">L</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mord">∣</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mclose">)</span></span></span></span>: 加权损失函数 (Weighted Loss Function)</strong>
+<ul>
+<li>这里的 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>L</mi></mrow><annotation encoding="application/x-tex">L</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">L</span></span></span></span> 通常指 <strong>Cross Entropy Loss (交叉熵损失)</strong>，或者是与其等价的 <strong>Perplexity (困惑度)</strong> 的对数形式。</li>
+<li><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>L</mi></mrow><annotation encoding="application/x-tex">L</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">L</span></span></span></span> 越小，说明模型对后续文本的预测越准确（“惊讶度”越低）。</li>
+</ul>
+</li>
+</ul>
+<h4 id="2-三种状态的对比-the-three-baselines">2. 三种状态的对比 (The Three Baselines)</h4>
+<p>为了判断工具是否有用，Toolformer 计算了三种情况下的 Loss，并进行对比：</p>
+<ol>
+<li><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>L</mi><mo>(</mo><mi>x</mi><mi mathvariant="normal">∣</mi><mi mathvariant="normal">∅</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">L(x | \emptyset)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">L</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mord">∣</span><span class="mord">∅</span><span class="mclose">)</span></span></span></span></strong>: <strong>无工具基线 (No Tool)</strong>
+<ul>
+<li>模型纯靠自己的“内隐知识”（Weights）去预测后续文本 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>x</mi><mrow><mi>i</mi><mo>:</mo><mi>n</mi></mrow></msub></mrow><annotation encoding="application/x-tex">x_{i:n}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mrel mtight">:</span><span class="mord mathdefault mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 的 Loss。</li>
+<li>如果模型自己就能完美猜出答案，那就不需要工具。</li>
+</ul>
+</li>
+<li><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>L</mi><mo>(</mo><mi>x</mi><mi mathvariant="normal">∣</mi><msub><mi>a</mi><mi>i</mi></msub><mo separator="true">,</mo><mi mathvariant="normal">∅</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">L(x | a_i, \emptyset)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">L</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mord">∣</span><span class="mord"><span class="mord mathdefault">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">∅</span><span class="mclose">)</span></span></span></span></strong>: <strong>仅有工具调用，无结果 (Tool Call Only)</strong>
+<ul>
+<li>给模型看“我要调用工具了”，但不给它看结果。</li>
+<li><strong>目的</strong>：排除模型只是学会了“调用工具的语法”而并没有利用“工具的返回值”的情况。如果这一项的 Loss 很低，说明模型只是在拟合 API 调用的文本模式，而不是真的需要信息。</li>
+</ul>
+</li>
+<li><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>L</mi><mo>(</mo><mi>x</mi><mi mathvariant="normal">∣</mi><msub><mi>a</mi><mi>i</mi></msub><mo separator="true">,</mo><msub><mi>r</mi><mi>i</mi></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">L(x | a_i, r_i)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">L</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mord">∣</span><span class="mord"><span class="mord mathdefault">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></strong>: <strong>工具调用 + 结果 (Tool Call + Result)</strong>
+<ul>
+<li>给模型看调用命令，并且给它看返回的真实信息。</li>
+<li>这是我们期望的理想状态：外部知识的引入大幅降低了预测后续文本的难度。</li>
+</ul>
+</li>
+</ol>
+<h4 id="3-收益函数与阈值-the-benefit-function">3. 收益函数与阈值 (The Benefit Function)</h4>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msubsup><mi>L</mi><mi>t</mi><mo>−</mo></msubsup><mo>=</mo><munder><munder><mrow><mi>L</mi><mo>(</mo><mi>x</mi><mi mathvariant="normal">∣</mi><mi mathvariant="normal">∅</mi><mo>)</mo></mrow><mo stretchy="true">⎵</mo></munder><mtext>自己猜的难度</mtext></munder><mo>−</mo><mi>min</mi><mo>⁡</mo><mo>(</mo><munder><munder><mrow><mi>L</mi><mo>(</mo><mi>x</mi><mi mathvariant="normal">∣</mi><msub><mi>a</mi><mi>i</mi></msub><mo separator="true">,</mo><mi mathvariant="normal">∅</mi><mo>)</mo></mrow><mo stretchy="true">⎵</mo></munder><mtext>只喊口号的难度</mtext></munder><mo separator="true">,</mo><munder><munder><mrow><mi>L</mi><mo>(</mo><mi>x</mi><mi mathvariant="normal">∣</mi><msub><mi>a</mi><mi>i</mi></msub><mo separator="true">,</mo><msub><mi>r</mi><mi>i</mi></msub><mo>)</mo></mrow><mo stretchy="true">⎵</mo></munder><mtext>看到结果的难度</mtext></munder><mo>)</mo></mrow><annotation encoding="application/x-tex">L_{t}^{-} = \underbrace{L(x | \emptyset)}_{\text{自己猜的难度}} - \min(\underbrace{L(x | a_i, \emptyset)}_{\text{只喊口号的难度}}, \underbrace{L(x | a_i, r_i)}_{\text{看到结果的难度}})
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.068331em;vertical-align:-0.247em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8213309999999999em;"><span style="top:-2.4530000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.3263309999999997em;vertical-align:-1.5763310000000001em;"></span><span class="mord munder"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7499999999999998em;"><span style="top:-1.4236689999999999em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord cjk_fallback mtight">自己猜的难度</span></span></span></span></span><span style="top:-2.9999999999999996em;"><span class="pstrut" style="height:3em;"></span><span class="mord munder"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.75em;"><span class="svg-align" style="top:-2.102em;"><span class="pstrut" style="height:3em;"></span><span class="stretchy" style="height:0.548em;min-width:1.6em;"><span class="brace-left" style="height:0.548em;"><svg width='400em' height='0.548em' viewBox='0 0 400000 548' preserveAspectRatio='xMinYMin slice'><path d='M0 6l6-6h17c12.688 0 19.313.3 20 1 4 4 7.313 8.3 10 13
+ 35.313 51.3 80.813 93.8 136.5 127.5 55.688 33.7 117.188 55.8 184.5 66.5.688
+ 0 2 .3 4 1 18.688 2.7 76 4.3 172 5h399450v120H429l-6-1c-124.688-8-235-61.7
+-331-161C60.687 138.7 32.312 99.3 7 54L0 41V6z'/></svg></span><span class="brace-center" style="height:0.548em;"><svg width='400em' height='0.548em' viewBox='0 0 400000 548' preserveAspectRatio='xMidYMin slice'><path d='M199572 214
+c100.7 8.3 195.3 44 280 108 55.3 42 101.7 93 139 153l9 14c2.7-4 5.7-8.7 9-14
+ 53.3-86.7 123.7-153 211-199 66.7-36 137.3-56.3 212-62h199568v120H200432c-178.3
+ 11.7-311.7 78.3-403 201-6 8-9.7 12-11 12-.7.7-6.7 1-18 1s-17.3-.3-18-1c-1.3 0
+-5-4-11-12-44.7-59.3-101.3-106.3-170-141s-145.3-54.3-229-60H0V214z'/></svg></span><span class="brace-right" style="height:0.548em;"><svg width='400em' height='0.548em' viewBox='0 0 400000 548' preserveAspectRatio='xMaxYMin slice'><path d='M399994 0l6 6v35l-6 11c-56 104-135.3 181.3-238 232-57.3
+ 28.7-117 45-179 50H-300V214h399897c43.3-7 81-15 113-26 100.7-33 179.7-91 237
+-174 2.7-5 6-9 10-13 .7-1 7.3-1 20-1h17z'/></svg></span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mord">∣</span><span class="mord">∅</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.898em;"><span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.5763310000000001em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:2.326331em;vertical-align:-1.5763310000000001em;"></span><span class="mop">min</span><span class="mopen">(</span><span class="mord munder"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7499999999999998em;"><span style="top:-1.4236689999999999em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord cjk_fallback mtight">只喊口号的难度</span></span></span></span></span><span style="top:-2.9999999999999996em;"><span class="pstrut" style="height:3em;"></span><span class="mord munder"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.75em;"><span class="svg-align" style="top:-2.102em;"><span class="pstrut" style="height:3em;"></span><span class="stretchy" style="height:0.548em;min-width:1.6em;"><span class="brace-left" style="height:0.548em;"><svg width='400em' height='0.548em' viewBox='0 0 400000 548' preserveAspectRatio='xMinYMin slice'><path d='M0 6l6-6h17c12.688 0 19.313.3 20 1 4 4 7.313 8.3 10 13
+ 35.313 51.3 80.813 93.8 136.5 127.5 55.688 33.7 117.188 55.8 184.5 66.5.688
+ 0 2 .3 4 1 18.688 2.7 76 4.3 172 5h399450v120H429l-6-1c-124.688-8-235-61.7
+-331-161C60.687 138.7 32.312 99.3 7 54L0 41V6z'/></svg></span><span class="brace-center" style="height:0.548em;"><svg width='400em' height='0.548em' viewBox='0 0 400000 548' preserveAspectRatio='xMidYMin slice'><path d='M199572 214
+c100.7 8.3 195.3 44 280 108 55.3 42 101.7 93 139 153l9 14c2.7-4 5.7-8.7 9-14
+ 53.3-86.7 123.7-153 211-199 66.7-36 137.3-56.3 212-62h199568v120H200432c-178.3
+ 11.7-311.7 78.3-403 201-6 8-9.7 12-11 12-.7.7-6.7 1-18 1s-17.3-.3-18-1c-1.3 0
+-5-4-11-12-44.7-59.3-101.3-106.3-170-141s-145.3-54.3-229-60H0V214z'/></svg></span><span class="brace-right" style="height:0.548em;"><svg width='400em' height='0.548em' viewBox='0 0 400000 548' preserveAspectRatio='xMaxYMin slice'><path d='M399994 0l6 6v35l-6 11c-56 104-135.3 181.3-238 232-57.3
+ 28.7-117 45-179 50H-300V214h399897c43.3-7 81-15 113-26 100.7-33 179.7-91 237
+-174 2.7-5 6-9 10-13 .7-1 7.3-1 20-1h17z'/></svg></span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mord">∣</span><span class="mord"><span class="mord mathdefault">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">∅</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.898em;"><span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.5763310000000001em;"><span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord munder"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7499999999999998em;"><span style="top:-1.4236689999999999em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord cjk_fallback mtight">看到结果的难度</span></span></span></span></span><span style="top:-2.9999999999999996em;"><span class="pstrut" style="height:3em;"></span><span class="mord munder"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.75em;"><span class="svg-align" style="top:-2.102em;"><span class="pstrut" style="height:3em;"></span><span class="stretchy" style="height:0.548em;min-width:1.6em;"><span class="brace-left" style="height:0.548em;"><svg width='400em' height='0.548em' viewBox='0 0 400000 548' preserveAspectRatio='xMinYMin slice'><path d='M0 6l6-6h17c12.688 0 19.313.3 20 1 4 4 7.313 8.3 10 13
+ 35.313 51.3 80.813 93.8 136.5 127.5 55.688 33.7 117.188 55.8 184.5 66.5.688
+ 0 2 .3 4 1 18.688 2.7 76 4.3 172 5h399450v120H429l-6-1c-124.688-8-235-61.7
+-331-161C60.687 138.7 32.312 99.3 7 54L0 41V6z'/></svg></span><span class="brace-center" style="height:0.548em;"><svg width='400em' height='0.548em' viewBox='0 0 400000 548' preserveAspectRatio='xMidYMin slice'><path d='M199572 214
+c100.7 8.3 195.3 44 280 108 55.3 42 101.7 93 139 153l9 14c2.7-4 5.7-8.7 9-14
+ 53.3-86.7 123.7-153 211-199 66.7-36 137.3-56.3 212-62h199568v120H200432c-178.3
+ 11.7-311.7 78.3-403 201-6 8-9.7 12-11 12-.7.7-6.7 1-18 1s-17.3-.3-18-1c-1.3 0
+-5-4-11-12-44.7-59.3-101.3-106.3-170-141s-145.3-54.3-229-60H0V214z'/></svg></span><span class="brace-right" style="height:0.548em;"><svg width='400em' height='0.548em' viewBox='0 0 400000 548' preserveAspectRatio='xMaxYMin slice'><path d='M399994 0l6 6v35l-6 11c-56 104-135.3 181.3-238 232-57.3
+ 28.7-117 45-179 50H-300V214h399897c43.3-7 81-15 113-26 100.7-33 179.7-91 237
+-174 2.7-5 6-9 10-13 .7-1 7.3-1 20-1h17z'/></svg></span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mord">∣</span><span class="mord"><span class="mord mathdefault">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.898em;"><span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.5763310000000001em;"><span></span></span></span></span></span><span class="mclose">)</span></span></span></span></span></p>
+<ul>
+<li><strong>逻辑解读</strong>：
+<ul>
+<li>这个公式计算的是 <strong>Loss 的降低量（Diff）</strong>。</li>
+<li><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>min</mi><mo>⁡</mo></mrow><annotation encoding="application/x-tex">\min</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.66786em;vertical-align:0em;"></span><span class="mop">min</span></span></span></span> 的作用是“取最严苛的标准”。要想 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msubsup><mi>L</mi><mi>t</mi><mo>−</mo></msubsup></mrow><annotation encoding="application/x-tex">L_{t}^{-}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.057218em;vertical-align:-0.24575599999999997em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.811462em;"><span style="top:-2.454244em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span style="top:-3.1031310000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.24575599999999997em;"><span></span></span></span></span></span></span></span></span></span> 为正且很大，<strong>必须</strong> 满足：
+<ul>
+<li>无工具时的 Loss 很高（自己猜不出来）。</li>
+<li>有了工具（特别是有了结果 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>r</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">r_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>）后，Loss 变得很低（看了答案恍然大悟）。</li>
+</ul>
+</li>
+<li>如果 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>L</mi><mo>(</mo><mi>x</mi><mi mathvariant="normal">∣</mi><mi mathvariant="normal">∅</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">L(x | \emptyset)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">L</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mord">∣</span><span class="mord">∅</span><span class="mclose">)</span></span></span></span> 本来就很低（问题太简单），或者 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>L</mi><mo>(</mo><mi>x</mi><mi mathvariant="normal">∣</mi><msub><mi>a</mi><mi>i</mi></msub><mo separator="true">,</mo><msub><mi>r</mi><mi>i</mi></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">L(x | a_i, r_i)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">L</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mord">∣</span><span class="mord"><span class="mord mathdefault">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> 并没有比 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>L</mi><mo>(</mo><mi>x</mi><mi mathvariant="normal">∣</mi><mi mathvariant="normal">∅</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">L(x | \emptyset)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">L</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mord">∣</span><span class="mord">∅</span><span class="mclose">)</span></span></span></span> 低多少（工具返回了废话），那么 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msubsup><mi>L</mi><mi>t</mi><mo>−</mo></msubsup></mrow><annotation encoding="application/x-tex">L_{t}^{-}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.057218em;vertical-align:-0.24575599999999997em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.811462em;"><span style="top:-2.454244em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span style="top:-3.1031310000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.24575599999999997em;"><span></span></span></span></span></span></span></span></span></span> 就会很小甚至为负。</li>
+</ul>
+</li>
+<li><strong>阈值 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>τ</mi></mrow><annotation encoding="application/x-tex">\tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.1132em;">τ</span></span></span></span> (Filtering Threshold)</strong>：
+<ul>
+<li>只有当 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msubsup><mi>L</mi><mi>t</mi><mo>−</mo></msubsup><mo>≥</mo><mi>τ</mi></mrow><annotation encoding="application/x-tex">L_{t}^{-} \geq \tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.057218em;vertical-align:-0.24575599999999997em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.811462em;"><span style="top:-2.454244em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span style="top:-3.1031310000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.24575599999999997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.1132em;">τ</span></span></span></span> 时，我们才认为这个工具调用是“有用”的。</li>
+<li>这是为了防止模型在这个步骤引入噪声。</li>
+</ul>
+</li>
+</ul>
+<h4 id="4-微调目标-fine-tuning-objective">4. 微调目标 (Fine-tuning Objective)</h4>
+<p>一旦筛选出有用的样本，我们就构建一个新的数据集，其中文本 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>x</mi></mrow><annotation encoding="application/x-tex">x</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">x</span></span></span></span> 被扩充为包含 API 调用的序列 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>x</mi><mo>∗</mo></msup></mrow><annotation encoding="application/x-tex">x^*</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.688696em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.688696em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span></span></span></span></span></span></span></span>。</p>
+<p>最终的损失函数 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="script">L</mi></mrow><annotation encoding="application/x-tex">\mathcal{L}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord"><span class="mord mathcal">L</span></span></span></span></span> 就是标准的语言模型训练损失：</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="script">L</mi><mo>=</mo><mo>−</mo><munder><mo>∑</mo><mi>j</mi></munder><mi>log</mi><mo>⁡</mo><msub><mi>P</mi><mi>θ</mi></msub><mo>(</mo><msub><mi>x</mi><mi>j</mi></msub><mi mathvariant="normal">∣</mi><msub><mi>x</mi><mrow><mn>1</mn><mo>:</mo><mi>j</mi><mo>−</mo><mn>1</mn></mrow></msub><mo separator="true">,</mo><mtext>with API calls</mtext><mo>)</mo></mrow><annotation encoding="application/x-tex">\mathcal{L} = - \sum_{j} \log P_\theta(x_j | x_{1:j-1}, \text{with API calls})
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord"><span class="mord mathcal">L</span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.463782em;vertical-align:-1.413777em;"></span><span class="mord">−</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.050005em;"><span style="top:-1.8723309999999997em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.05724em;">j</span></span></span></span><span style="top:-3.0500049999999996em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.413777em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mrel mtight">:</span><span class="mord mathdefault mtight" style="margin-right:0.05724em;">j</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord text"><span class="mord">with API calls</span></span><span class="mclose">)</span></span></span></span></span></p>
+<p>这意味着：<strong>模型不仅要学会预测原来的文本，还要学会预测“API 调用字符串”本身。</strong> 也就是把调用工具内化为一种语言生成能力。</p>
+<hr>
+<h3 id="第二部分通俗易懂的解释-plain-english-explanation">第二部分：通俗易懂的解释 (Plain English Explanation)</h3>
+<p>想象你在参加一场**“填空考试”**，题目是：</p>
+<blockquote>
+<p>“匹兹堡钢人队是美国最古老的橄榄球队之一，它成立于 ____ 年。”</p>
+</blockquote>
+<p>Toolformer 就像是一个正在<strong>自我复习的学生</strong>，它想知道“什么时候该查书，什么时候该靠脑子记”。它会做三次实验：</p>
+<ol>
+<li><strong>裸考（No Tool）</strong>：
+<ul>
+<li>学生闭上眼猜：“嗯... 1930？1940？”</li>
+<li>结果：心里很没底，预测的准确率很低（<strong>Loss 很高</strong>）。</li>
+</ul>
+</li>
+<li><strong>只做动作，不看结果（Tool Call Only）</strong>：
+<ul>
+<li>学生大喊一声：“我要查维基百科！”但书被封上了，看不到内容。</li>
+<li>结果：虽然喊了口号，但对填那个年份没有任何帮助，心里还是很没底（<strong>Loss 依然很高</strong>）。</li>
+</ul>
+</li>
+<li><strong>查书并看到结果（Tool Call + Result）</strong>：
+<ul>
+<li>学生查了维基百科，书上写着“1933”。</li>
+<li>结果：学生现在非常有信心地填上“1933”（<strong>Loss 变得极低</strong>）。</li>
+</ul>
+</li>
+</ol>
+<p><strong>判定逻辑（The Filter）：</strong></p>
+<p>Toolformer 会计算：<strong>“我看书后的自信程度”比“我裸考时的自信程度”高了多少？</strong></p>
+<ul>
+<li><strong>情况 A（有用的工具）</strong>：
+<ul>
+<li>裸考：完全不知道（Loss 10.0）。</li>
+<li>看书后：秒懂（Loss 0.1）。</li>
+<li><strong>结论</strong>：差异巨大！这本书（工具）太有用了！<strong>把“这里需要查书”这件事写进我的教科书（微调数据集），以后遇到这题自动查书。</strong></li>
+</ul>
+</li>
+<li><strong>情况 B（没用的工具 - 问题太简单）</strong>：
+<ul>
+<li>题目：“美国的首都是 ____。”</li>
+<li>裸考：我知道是华盛顿（Loss 0.1）。</li>
+<li>看书后：确实是华盛顿（Loss 0.1）。</li>
+<li><strong>结论</strong>：差异几乎为零。这题我自己会，查书纯属浪费时间。<strong>不要把这个操作写进教科书。</strong></li>
+</ul>
+</li>
+<li><strong>情况 C（没用的工具 - 工具太烂）</strong>：
+<ul>
+<li>题目：“明天的彩票号码是 ____。”</li>
+<li>裸考：不知道（Loss 10.0）。</li>
+<li>查书后：书上也没写（Loss 10.0）。</li>
+<li><strong>结论</strong>：查了也没用。<strong>扔掉。</strong></li>
+</ul>
+</li>
+</ul>
+<p><strong>总结</strong>：Toolformer 的公式就是为了找出那些**“我不查不知道，一查就吓一跳（瞬间明白）”**的关键时刻，并把这些时刻刻录到模型的脑子里。</p>
+</blockquote>
+<hr>
+<h3 id="3-手撕代码重点与实现-whiteboard-coding-focus">3. 手撕代码重点与实现 (Whiteboard Coding Focus)</h3>
+<p>这是面试中最硬核的部分。面试官不希望看到你调用 LangChain，而是看你是否理解 ReAct 的 <strong>Prompt 构造</strong> 和 <strong>While 循环逻辑</strong>。</p>
+<p><strong>场景</strong>：实现一个 ReAct Agent 解决数学题 <code>&quot;123 * 456 + 789&quot;</code>。</p>
+<h4 id="a-核心逻辑死记硬背部分"><strong>A. 核心逻辑（死记硬背部分）</strong></h4>
+<ol>
+<li><strong>Prompt Template</strong>: 必须包含 <code>Question</code>, <code>Thought</code>, <code>Action</code>, <code>Observation</code> 的格式说明。</li>
+<li><strong>Stop Condition</strong>: 模型何时停止？通常是生成 <code>Action: Finish[answer]</code> 时。</li>
+<li><strong>String Parsing</strong>: 如何从模型吐出的一大段废话中提取出具体的函数名和参数。</li>
+</ol>
+<h4 id="b-python-实现-pytorchmock-llm-风格"><strong>B. Python 实现 (PyTorch/Mock LLM 风格)</strong></h4>
+<p>Python</p>
+<pre><code>import re
+
+# 1. 定义工具 (Tools)
+def calculate(expression):
+    try:
+        # 在生产环境中要严格限制 eval 的权限，这里仅作演示
+        return str(eval(expression))
+    except Exception as e:
+        return f&quot;Error: {e}&quot;
+
+tools = {
+    &quot;Calculate&quot;: calculate
+}
+
+# 2. 定义 Prompt 模版 (这是 ReAct 的灵魂)
+REACT_PROMPT = &quot;&quot;&quot;
+Answer the following questions as best you can. You have access to the following tools:
+Calculate: Useful for evaluating mathematical expressions.
+
+Use the following format:
+Question: the input question you must answer
+Thought: you should always think about what to do
+Action: the action to take, should be one of [Calculate]
+Action Input: the input to the action
+Observation: the result of the action
+... (this Thought/Action/Action Input/Observation can repeat N times)
+Thought: I now know the final answer
+Final Answer: the final answer to the original input question
+
+Question: {question}
+&quot;&quot;&quot;
+
+# 3. 模拟 LLM (面试时用这个占位，表示你会调用 API)
+def llm_call(prompt, stop_sequences=None):
+    # 在真实场景中，这里调用 openai.ChatCompletion.create(...)
+    # 为了演示，我hardcode一个典型的 ReAct 响应流
+    # 第一轮：模型决定计算乘法
+    if &quot;123 * 456 + 789&quot; in prompt and &quot;Observation&quot; not in prompt:
+        return &quot;Thought: I need to calculate 123 * 456 first.\nAction: Calculate\nAction Input: 123 * 456&quot;
+    # 第二轮：模型拿到乘法结果，决定加法
+    elif &quot;56088&quot; in prompt and &quot;789&quot; in prompt and &quot;Final Answer&quot; not in prompt:
+        return &quot;Thought: Now I need to add 789 to the result.\nAction: Calculate\nAction Input: 56088 + 789&quot;
+    # 第三轮：模型得出结论
+    elif &quot;56877&quot; in prompt:
+        return &quot;Thought: I have the final result.\nFinal Answer: 56877&quot;
+    else:
+        return &quot;Final Answer: I don't know.&quot;
+
+# 4. 核心 ReAct Loop (手撕重点)
+def react_agent(question):
+    # 初始化 Prompt
+    curr_prompt = REACT_PROMPT.format(question=question)
+    
+    step_count = 0
+    max_steps = 5 # 防止死循环
+    
+    while step_count &lt; max_steps:
+        print(f&quot;--- Step {step_count + 1} ---&quot;)
+        
+        # 4.1 LLM 生成 (Reasoning + Action)
+        # 注意：在真实 API 调用中，通常设置 stop=[&quot;Observation:&quot;] 防止模型幻想结果
+        response = llm_call(curr_prompt, stop_sequences=[&quot;Observation:&quot;])
+        print(f&quot;LLM Output:\n{response}&quot;)
+        
+        # 4.2 更新 Prompt 历史
+        curr_prompt += response + &quot;\n&quot;
+        
+        # 4.3 检查是否结束
+        if &quot;Final Answer:&quot; in response:
+            return response.split(&quot;Final Answer:&quot;)[1].strip()
+        
+        # 4.4 解析 Action (Regex 是面试常考点)
+        # 匹配 Action: ToolName 和 Action Input: Args
+        action_match = re.search(r&quot;Action: (\w+)&quot;, response)
+        input_match = re.search(r&quot;Action Input: (.*)&quot;, response)
+        
+        if action_match and input_match:
+            tool_name = action_match.group(1)
+            tool_input = input_match.group(1).strip()
+            
+            # 4.5 执行工具 (Acting)
+            if tool_name in tools:
+                observation = tools[tool_name](tool_input)
+                print(f&quot;Observation: {observation}&quot;)
+                
+                # 4.6 将结果追加回 Context (关键！)
+                curr_prompt += f&quot;Observation: {observation}\n&quot;
+            else:
+                curr_prompt += f&quot;Observation: Tool {tool_name} not found.\n&quot;
+        else:
+            # 容错处理
+            curr_prompt += &quot;Observation: Invalid action format. Please try again.\n&quot;
+            
+        step_count += 1
+        
+    return &quot;Timeout: Maximum steps reached.&quot;
+
+# 运行
+result = react_agent(&quot;123 * 456 + 789 等于多少&quot;)
+print(f&quot;\nResult: {result}&quot;)
+</code></pre>
+<h4 id="c-工程落地细节-production"><strong>C. 工程落地细节 (Production)</strong></h4>
+<ul>
+<li><strong>Stop Sequences</strong>: 调用 LLM API 时必须设置 <code>stop=[&quot;Observation:&quot;]</code>。否则模型会自己幻想出 <code>Observation</code> 的结果（即 Hallucination），导致无法执行真实代码。</li>
+<li><strong>Context Limit</strong>: 历史记录（History）会越来越长。工程上需要实现 <strong>Sliding Window</strong>（保留最近 N 轮对话）或 <strong>Summary</strong>（总结之前的步骤）机制。</li>
+<li><strong>Error Handling</strong>: 工具调用失败时（如 Python 语法错误），必须将错误信息作为 Observation 返回给 LLM，让它自我修正（Self-Correction）。</li>
+</ul>
+<hr>
+<h3 id="4-面试高频考察点-interview-checkpoints">4. 面试高频考察点 (Interview Checkpoints)</h3>
+<p>以下是你在面试中可能会被追问的“坑”：</p>
+<h4 id="q1-react-相比于普通的-cot最核心的区别是什么"><strong>Q1: ReAct 相比于普通的 CoT，最核心的区别是什么？</strong></h4>
+<ul>
+<li><strong>普通回答</strong>: ReAct 能调用工具。</li>
+<li><strong>满分回答</strong>: ReAct 的本质是<strong>打破了封闭系统的熵增</strong>。CoT 是封闭在模型参数内的纯粹推理，一旦某一步出错，后续步骤会不断累积错误（Error Propagation）。ReAct 通过 <code>Observation</code> 引入外部世界的<strong>真实反馈（Ground Truth）</strong>，在推理链条中充当了“校准点”，从而修正了推理轨迹。</li>
+</ul>
+<blockquote>
+<p>这是一个非常深刻且能够体现你对 LLM 本质理解的回答。为了在面试中完美演绎这个逻辑，我们需要将“熵增”、“封闭系统”和“错误传播”这些物理和数学概念，精准地映射到大模型生成的语境中。</p>
+<p>以下是针对该“满分回答”的深度拆解。</p>
+<hr>
+<h3 id="第一部分深度学术专业解释-academic-deep-dive">第一部分：深度学术专业解释 (Academic Deep Dive)</h3>
+<p>这个回答的核心在于将 <strong>Chain of Thought (CoT)</strong> 视为一个<strong>随机过程 (Stochastic Process)</strong>，并将 <strong>ReAct</strong> 视为引入了<strong>负反馈机制 (Negative Feedback Mechanism)</strong> 的控制系统。</p>
+<h4 id="1-封闭系统的熵增-entropy-increase-in-closed-systems">1. 封闭系统的熵增 (Entropy Increase in Closed Systems)</h4>
+<ul>
+<li><strong>学术定义</strong>：
+<ul>
+<li><strong>封闭系统 (Closed System)</strong>：在 LLM 语境下，指模型仅依赖<strong>参数知识 (Parametric Knowledge)</strong> 和<strong>上下文窗口 (Context Window)</strong> 进行推理，没有外部新信息的输入。</li>
+<li><strong>熵 (Entropy)</strong>：在信息论中（香农熵），熵是对不确定性（Uncertainty）的度量。</li>
+</ul>
+</li>
+<li><strong>在 CoT 中的表现</strong>：
+<ul>
+<li>当模型进行长链条推理时，每一步生成都是一个概率采样过程：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>y</mi><mi>t</mi></msub><mo>∼</mo><mi>P</mi><mo>(</mo><msub><mi>y</mi><mi>t</mi></msub><mi mathvariant="normal">∣</mi><msub><mi>y</mi><mrow><mo>&lt;</mo><mi>t</mi></mrow></msub><mo separator="true">,</mo><mi>x</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">y_t \sim P(y_t | y_{&lt;t}, x)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∼</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.13889em;">P</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mrel mtight">&lt;</span><span class="mord mathdefault mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.17737em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">x</span><span class="mclose">)</span></span></span></span>。</li>
+<li>如果没有外部纠正，模型生成的文本往往会随着长度增加而逐渐偏离事实，逻辑的严密性下降，幻觉（Hallucination）的概率增加。这就是“熵增”——<strong>系统从有序（Fact-based）走向无序（Nonsense）的自然趋势</strong>。</li>
+</ul>
+</li>
+</ul>
+<h4 id="2-错误传播-error-propagation-cascading-errors">2. 错误传播 (Error Propagation / Cascading Errors)</h4>
+<ul>
+<li><strong>学术定义</strong>：指在序列决策或生成任务中，早期的微小误差如何导致后续步骤产生巨大的偏差。</li>
+<li><strong>数学视角</strong>：
+<ul>
+<li>假设第 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.61508em;vertical-align:0em;"></span><span class="mord mathdefault">t</span></span></span></span> 步推理出现错误的概率是 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>ϵ</mi></mrow><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">ϵ</span></span></span></span>。</li>
+<li>在 CoT (纯推理) 中，第 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">t+1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69841em;vertical-align:-0.08333em;"></span><span class="mord mathdefault">t</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> 步的输入依赖于第 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.61508em;vertical-align:0em;"></span><span class="mord mathdefault">t</span></span></span></span> 步的输出。如果 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>y</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">y_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 是错的，那么 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>P</mi><mo>(</mo><msub><mi>y</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><mi mathvariant="normal">∣</mi><msub><mi>y</mi><mi>t</mi></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">P(y_{t+1} | y_t)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.13889em;">P</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.301108em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.208331em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> 的分布就会基于这个错误的前提进行计算。</li>
+<li>这就导致了 <strong>Covariate Shift (协变量偏移)</strong>。随着推理步数 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span></span></span></span> 的增加，错误的累积通常是指数级的。就像“差之毫厘，谬以千里”。</li>
+</ul>
+</li>
+</ul>
+<h4 id="3-观察-observation-与-接地-grounding">3. 观察 (Observation) 与 接地 (Grounding)</h4>
+<ul>
+<li><strong>学术定义</strong>：
+<ul>
+<li><strong>Observation (<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="script">O</mi></mrow><annotation encoding="application/x-tex">\mathcal{O}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord"><span class="mord mathcal" style="margin-right:0.02778em;">O</span></span></span></span></span>)</strong>：指 Agent 执行 Action 后，环境返回的确定性状态（Deterministic State）。</li>
+<li><strong>Grounding (接地)</strong>：指将模型的符号系统与现实世界的物理实体或事实进行链接的过程。</li>
+</ul>
+</li>
+<li><strong>ReAct 的校准机制</strong>：
+<ul>
+<li>在 ReAct 轨迹 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>τ</mi><mo>=</mo><mo>(</mo><msub><mi>t</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>a</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>o</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>t</mi><mn>2</mn></msub><mo separator="true">,</mo><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">\tau = (t_1, a_1, o_1, t_2, ...)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.1132em;">τ</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">.</span><span class="mord">.</span><span class="mord">.</span><span class="mclose">)</span></span></span></span> 中，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>o</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">o_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 打断了纯文本生成的链条。</li>
+<li>即使 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>t</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">t_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76508em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (思考) 是错的，或者 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>a</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">a_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (动作) 的方向偏了，只要 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>o</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">o_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (观察结果) 返回了真实数据，模型生成下一步 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>t</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">t_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76508em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 的条件概率就变成了 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>P</mi><mo>(</mo><msub><mi>t</mi><mn>2</mn></msub><mi mathvariant="normal">∣</mi><msub><mi>t</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>a</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>o</mi><mn>1</mn></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">P(t_2 | t_1, a_1, o_1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.13889em;">P</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mord"><span class="mord mathdefault">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>。</li>
+<li>这里的 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>o</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">o_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 作为一个<strong>强约束 (Hard Constraint)</strong>，极大地降低了条件概率分布的熵，将模型拉回正确的轨道。</li>
+</ul>
+</li>
+</ul>
+<h4 id="4-控制理论视角开环-vs-闭环-open-loop-vs-closed-loop">4. 控制理论视角：开环 vs 闭环 (Open-loop vs Closed-loop)</h4>
+<ul>
+<li><strong>CoT 是开环控制 (Open-loop Control)</strong>：
+<ul>
+<li>设定好初始 Prompt，模型一口气跑到底。中间没有检查机制，一旦跑偏无法回头。</li>
+</ul>
+</li>
+<li><strong>ReAct 是闭环控制 (Closed-loop Control)</strong>：
+<ul>
+<li>引入了<strong>反馈 (Feedback)</strong>。Observation 就是反馈信号。系统通过不断比较“预期结果”和“实际观察”，动态调整策略。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="第二部分通俗易懂的语言解释-layman-explanation">第二部分：通俗易懂的语言解释 (Layman Explanation)</h3>
+<p>为了让非技术背景的人也能听懂，我们可以用**“走迷宫”<strong>或</strong>“闭眼画画”**的例子。</p>
+<h4 id="1-cot-就像是闭眼走迷宫">1. CoT 就像是“闭眼走迷宫”</h4>
+<ul>
+<li><strong>封闭系统</strong>：你被蒙上了眼睛（只能靠脑子里的地图回忆）。</li>
+<li><strong>错误传播</strong>：
+<ul>
+<li>你对自己说：“我记得前面左转是出口”（这是 Thought）。</li>
+<li>于是你左转了。但其实你记错了，那里是死胡同。</li>
+<li>因为你看不见（没有 Observation），你并不知道自己走错了，你会基于“我现在在正确路上”这个<strong>错误的假设</strong>，继续往前走，结果越走越偏，最后完全迷路。</li>
+</ul>
+</li>
+<li>这就是<strong>熵增</strong>：从一开始的“大概知道在哪”，变成了最后的“完全不知道在哪”。</li>
+</ul>
+<h4 id="2-react-就像是睁眼走迷宫">2. ReAct 就像是“睁眼走迷宫”</h4>
+<ul>
+<li><strong>观察 (Observation)</strong>：你每走一步，都允许你<strong>睁开眼睛看一眼</strong>路牌或周围环境。</li>
+<li><strong>校准点 (Calibration)</strong>：
+<ul>
+<li>你对自己说：“我觉得前面左转是出口”（Thought）。</li>
+<li>你左转了（Action）。</li>
+<li><strong>关键时刻</strong>：你睁眼一看（Observation），发现前面是堵墙。</li>
+<li><strong>修正</strong>：这时候你绝对不会继续往前撞墙。你会立刻修正想法：“哦，看来我记错了，这里不通，那我应该退回去试右边”（New Thought）。</li>
+</ul>
+</li>
+<li><strong>结果</strong>：虽然你中间犯了错，但因为你看了现实世界一眼，这个错误被立刻纠正了，没有累积下去。</li>
+</ul>
+<p><strong>总结给面试官的话：</strong></p>
+<blockquote>
+<p>“CoT 就像是一个才华横溢但闭目塞听的诗人，沉浸在自己的逻辑世界里，错了也不自知；而 ReAct 就像是一个务实的工程师，虽然也会犯错，但他手里拿着尺子和测量仪（Tools），每一步都在和现实世界对齐（Grounding），所以他能解决实际问题。”</p>
+</blockquote>
+</blockquote>
+<h4 id="q2-toolformer-和-react-在训练推理阶段有什么不同"><strong>Q2: Toolformer 和 ReAct 在训练/推理阶段有什么不同？</strong></h4>
+<ul>
+<li><strong>满分回答</strong>:
+<ul>
+<li><strong>ReAct</strong> 是一种<strong>推理时 (Inference-time)</strong> 策略。模型本身不需要修改参数，只需要通过 Prompt Engineering 激发能力。缺点是 Prompt 极其冗长，Token 开销大。</li>
+<li><strong>Toolformer</strong> 是一种<strong>训练时 (Training-time)</strong> 策略。它通过构造数据集进行 Fine-tuning，改变了模型的权重。优点是推理时不需要复杂的 Few-shot Prompt，可以直接生成 API 调用，速度快且 Token 省。</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>这道题触及了大模型落地应用中最核心的<strong>成本与效率</strong>博弈。</p>
+<p>ReAct 代表了“利用现有模型智慧”的捷径，而 Toolformer 代表了“重塑模型直觉”的苦功。</p>
+<p>以下是针对该“满分回答”的深度拆解。</p>
+<hr>
+<h3 id="第一部分深度学术专业解释-academic-deep-dive-2">第一部分：深度学术专业解释 (Academic Deep Dive)</h3>
+<p>这个回答从<strong>机器学习生命周期 (ML Lifecycle)</strong> 的两个不同阶段——<strong>推理 (Inference)</strong> 和 <strong>训练 (Training)</strong>——对两种方法进行了划分。</p>
+<h4 id="1-推理时策略-inference-time-strategy-react">1. 推理时策略 (Inference-time Strategy) —— ReAct</h4>
+<ul>
+<li><strong>学术定义</strong>：
+<ul>
+<li><strong>Inference-time (推理时)</strong>：指模型参数 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>θ</mi></mrow><annotation encoding="application/x-tex">\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">θ</span></span></span></span> 已经固定（Frozen），不再进行梯度更新（Gradient Descent）。模型仅根据输入 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>x</mi></mrow><annotation encoding="application/x-tex">x</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">x</span></span></span></span> 计算输出 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>y</mi></mrow><annotation encoding="application/x-tex">y</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span></span></span></span> 的前向传播过程。</li>
+<li><strong>In-Context Learning (ICL, 上下文学习)</strong>：ReAct 的核心机制。指 LLM 通过阅读 Prompt 中的示例（Few-shot Demonstrations），在不更新权重的情况下，“临时”学会了如何分解任务和调用工具。</li>
+<li><strong>Prompt Engineering (提示工程)</strong>：人工设计能够激发模型特定能力的文本模版。在 ReAct 中，这包括强制模型遵循 <code>Thought -&gt; Action -&gt; Observation</code> 的格式。</li>
+</ul>
+</li>
+<li><strong>痛点解析 (Token Complexity)</strong>：
+<ul>
+<li><strong>Context Window (上下文窗口)</strong>：Transformer 模型的输入长度是有限的（如 4k, 8k tokens）。ReAct 需要把详细的工具说明、几个 Few-shot 示例以及每一步的执行历史都塞进这个窗口。</li>
+<li><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> Attention Cost</strong>：Transformer 的计算复杂度随序列长度呈二次方增长。ReAct 导致 Prompt 极长，这直接导致推理延迟（Latency）增加，且商业 API 的计费（Cost per Token）也随之飙升。</li>
+</ul>
+</li>
+</ul>
+<h4 id="2-训练时策略-training-time-strategy-toolformer">2. 训练时策略 (Training-time Strategy) —— Toolformer</h4>
+<ul>
+<li><strong>学术定义</strong>：
+<ul>
+<li><strong>Training-time (训练时)</strong>：指通过反向传播算法（Backpropagation）更新模型参数 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>θ</mi></mrow><annotation encoding="application/x-tex">\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">θ</span></span></span></span> 的过程。</li>
+<li><strong>Fine-tuning (SFT, Supervised Fine-Tuning)</strong>：在预训练模型（Pre-trained Model）的基础上，使用特定任务的数据集（这里是包含 API 调用的文本）进行进一步训练。</li>
+<li><strong>Weight Update (权重更新)</strong>：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>θ</mi><mrow><mi>n</mi><mi>e</mi><mi>w</mi></mrow></msub><mo>←</mo><msub><mi>θ</mi><mrow><mi>o</mi><mi>l</mi><mi>d</mi></mrow></msub><mo>−</mo><mi>η</mi><mi mathvariant="normal">∇</mi><mi mathvariant="script">L</mi></mrow><annotation encoding="application/x-tex">\theta_{new} \leftarrow \theta_{old} - \eta \nabla \mathcal{L}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">n</span><span class="mord mathdefault mtight">e</span><span class="mord mathdefault mtight" style="margin-right:0.02691em;">w</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">←</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight" style="margin-right:0.01968em;">l</span><span class="mord mathdefault mtight">d</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">η</span><span class="mord">∇</span><span class="mord"><span class="mord mathcal">L</span></span></span></span></span>。Toolformer 通过这种方式，将“何时调用工具”的知识刻录进了神经网络的突触连接（Weights）中。</li>
+</ul>
+</li>
+<li><strong>优势解析 (Zero-shot Capability)</strong>：
+<ul>
+<li>由于模型已经“内化”了工具使用能力，推理时不再需要提供冗长的示例（Zero-shot）。</li>
+<li><strong>Latent Capability (潜在能力)</strong>：工具调用变成了模型的一种本能反应，就像预测下一个单词一样自然，不再依赖外部的 Prompt 引导。</li>
+</ul>
+</li>
+</ul>
+<h4 id="3-两种范式的对比-paradigm-shift">3. 两种范式的对比 (Paradigm Shift)</h4>
+<ul>
+<li><strong>ReAct</strong>: <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mtext>Output</mtext><mo>=</mo><msub><mi>f</mi><msub><mi>θ</mi><mrow><mi>f</mi><mi>r</mi><mi>o</mi><mi>z</mi><mi>e</mi><mi>n</mi></mrow></msub></msub><mo>(</mo><mtext>Prompt</mtext><mo>+</mo><mtext>Input</mtext><mo>)</mo></mrow><annotation encoding="application/x-tex">\text{Output} = f_{\theta_{frozen}}(\text{Prompt} + \text{Input})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord text"><span class="mord">Output</span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.1030799999999998em;vertical-align:-0.35307999999999995em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.10764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3487714285714287em;margin-left:-0.02778em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.10764em;">f</span><span class="mord mathdefault mtight" style="margin-right:0.02778em;">r</span><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight" style="margin-right:0.04398em;">z</span><span class="mord mathdefault mtight">e</span><span class="mord mathdefault mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.29011428571428566em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.35307999999999995em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord text"><span class="mord">Prompt</span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">Input</span></span><span class="mclose">)</span></span></span></span>
+<ul>
+<li>利用外部存储（Prompt）来弥补内部能力的不足。</li>
+</ul>
+</li>
+<li><strong>Toolformer</strong>: <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mtext>Output</mtext><mo>=</mo><msub><mi>f</mi><msub><mi>θ</mi><mrow><mi>t</mi><mi>u</mi><mi>n</mi><mi>e</mi><mi>d</mi></mrow></msub></msub><mo>(</mo><mtext>Input</mtext><mo>)</mo></mrow><annotation encoding="application/x-tex">\text{Output} = f_{\theta_{tuned}}(\text{Input})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord text"><span class="mord">Output</span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.00586em;vertical-align:-0.25586em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999985em;"><span style="top:-2.55em;margin-left:-0.10764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3487714285714287em;margin-left:-0.02778em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span><span class="mord mathdefault mtight">u</span><span class="mord mathdefault mtight">n</span><span class="mord mathdefault mtight">e</span><span class="mord mathdefault mtight">d</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15122857142857138em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.25586em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord text"><span class="mord">Input</span></span><span class="mclose">)</span></span></span></span>
+<ul>
+<li>通过改变内部结构（Parameters）来直接获得能力。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="第二部分通俗易懂的语言解释-layman-explanation-2">第二部分：通俗易懂的语言解释 (Layman Explanation)</h3>
+<p>想象你要去参加一场**“工具使用技能大赛”**（比如修车）。</p>
+<h4 id="1-react-就像是带了一本超厚的说明书小抄">1. ReAct 就像是“带了一本超厚的说明书（小抄）”</h4>
+<ul>
+<li><strong>推理时策略</strong>：你本人（模型）其实并没有专门练过修车，脑子里没有这个技能（参数没变）。</li>
+<li><strong>Prompt Engineering</strong>：但是，你带了一本《修车指南》（Prompt）。</li>
+<li><strong>过程</strong>：考试时，老师问你怎么换轮胎。你必须先翻开书，读上面的例子：“第一步找千斤顶...第二步拧螺丝...”。你一边读一边照做。</li>
+<li><strong>缺点（Token 开销大）</strong>：
+<ul>
+<li>这就叫“现学现卖”。</li>
+<li>你的桌子上（Context Window）堆满了书和笔记，很占地方。</li>
+<li>你读得慢，做得也慢（延迟高）。</li>
+<li>如果书上没写（Prompt 没写好），你就不会了。</li>
+</ul>
+</li>
+</ul>
+<h4 id="2-toolformer-就像是考前参加了魔鬼特训内功">2. Toolformer 就像是“考前参加了魔鬼特训（内功）”</h4>
+<ul>
+<li><strong>训练时策略</strong>：你在考试前，花了三个月时间天天在车间里练习（Fine-tuning）。</li>
+<li><strong>权重更新</strong>：通过成千上万次的练习，你把修车的动作练成了<strong>肌肉记忆</strong>（模型权重变了）。</li>
+<li><strong>过程</strong>：考试时，老师一问“换轮胎”，你根本不需要看书，手直接就伸向了千斤顶。</li>
+<li><strong>优点</strong>：
+<ul>
+<li><strong>Zero-shot</strong>：不需要带说明书，直接干。</li>
+<li><strong>速度快</strong>：动作行云流水，没有任何废话。</li>
+<li><strong>省资源</strong>：桌子（Context Window）干干净净，只放工具。</li>
+</ul>
+</li>
+</ul>
+<p><strong>总结给面试官的话：</strong></p>
+<blockquote>
+<p>“ReAct 是<strong>外挂式</strong>智慧，靠的是‘临场阅读理解’，灵活但费脑子（费 Token）；Toolformer 是<strong>内嵌式</strong>本能，靠的是‘肌肉记忆’，虽然练起来（训练）辛苦，但用起来（推理）极快且从容。”</p>
+</blockquote>
+</blockquote>
+<h4 id="q3-如果模型在-loop-中陷入死循环例如反复调用同一个-search怎么解决"><strong>Q3: 如果模型在 Loop 中陷入死循环（例如反复调用同一个 Search），怎么解决？</strong></h4>
+<ul>
+<li><strong>满分回答</strong>: 这是 Agent 的常见问题。解决方案有二：
+<ol>
+<li><strong>Hard Constraint</strong>: 在 Prompt 中明确要求“不要重复相同的 Action”。</li>
+<li><strong>System Level</strong>: 在 Python 代码层记录历史 Action Hash，如果检测到最近 3 次 Action 相同，强制在追加的 <code>Observation</code> 中注入提示：“You are repeating actions. Try a different approach.”</li>
+</ol>
+</li>
+</ul>
+<hr>
+<h3 id="5-场景与演进-sota-evolution">5. 场景与演进 (SOTA &amp; Evolution)</h3>
+<h4 id="a-业务场景"><strong>A. 业务场景</strong></h4>
+<ul>
+<li><strong>企业级搜索 (Enterprise Search)</strong>: 结合 RAG，通过 Tool 调用数据库查询内部文档。</li>
+<li><strong>代码助手 (Code Interpreter)</strong>: 如 OpenAI 的 Advanced Data Analysis，本质是 ReAct 循环（写代码 -&gt; 运行 -&gt; 看报错 -&gt; 修改代码）。</li>
+<li><strong>个人助理 (RPA)</strong>: 订票、发邮件、日历管理。</li>
+</ul>
+<h4 id="b-sota-演进"><strong>B. SOTA 演进</strong></h4>
+<p>ReAct 是 2023 年初的基线，现在的演进方向主要有：</p>
+<ol>
+<li><strong>Reflexion (Shinn et al., 2023)</strong>: 在 ReAct 基础上增加了<strong>反思 (Reflection)</strong> 步骤。如果任务失败，模型会生成一段“为什么失败”的文本存入长时记忆，下次不再犯错。</li>
+<li><strong>Tree of Thoughts (ToT)</strong>: 将线性的 Chain 升级为 Tree。在每一步生成多个可能的 Thought，利用搜索算法（BFS/DFS）寻找最优路径，如果当前路径走不通则回溯。</li>
+<li><strong>Function Calling (OpenAI Native)</strong>: OpenAI 将 Toolformer 的思想做到了极致，在底层微调了模型，使其能输出结构化的 JSON 来调用函数，不再需要通过 Regex 解析文本，大大提高了稳定性。</li>
+</ol>
+<hr>
+<h3 id="总结-summary">总结 (Summary)</h3>
+<p>面试中，当你展示代码时，一定要一边写一边强调：<strong>“ReAct 的核心不是代码有多复杂，而是这种 Prompt 结构如何利用 LLM 的上下文补全能力，实现了逻辑流与控制流的统一。”</strong></p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#1-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%E4%B8%8E%E8%AE%BA%E6%96%87%E6%BA%AF%E6%BA%90-concept-paper-roots">1. 核心概念与论文溯源 (Concept &amp; Paper Roots)</a>
+<ul>
+<li><a href="#a-%E6%A0%B8%E5%BF%83%E8%AE%BA%E6%96%87-the-papers"><strong>A. 核心论文 (The Papers)</strong></a></li>
+<li><a href="#b-%E6%9C%AC%E8%B4%A8%E6%A6%82%E6%8B%AC-the-essence"><strong>B. 本质概括 (The Essence)</strong></a></li>
+<li><a href="#c-%E7%97%9B%E7%82%B9%E8%A7%A3%E5%86%B3-problem-solving"><strong>C. 痛点解决 (Problem Solving)</strong></a></li>
+</ul>
+</li>
+<li><a href="#2-%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86%E4%B8%8E%E6%8E%A8%E5%AF%BC-mathematical-underpinning">2. 数学原理与推导 (Mathematical Underpinning)</a>
+<ul>
+<li><a href="#a-react-%E7%9A%84%E8%BD%A8%E8%BF%B9%E5%BB%BA%E6%A8%A1"><strong>A. ReAct 的轨迹建模</strong></a></li>
+</ul>
+</li>
+<li><a href="#%E7%AC%AC%E4%B8%80%E9%83%A8%E5%88%86%E6%B7%B1%E5%BA%A6%E5%AD%A6%E6%9C%AF%E8%A7%A3%E6%9E%90">第一部分：深度学术解析</a></li>
+<li><a href="#%E7%AC%AC%E4%BA%8C%E9%83%A8%E5%88%86%E9%80%9A%E4%BF%97%E6%98%93%E6%87%82%E7%9A%84%E8%A7%A3%E9%87%8A%E4%BA%BA%E8%AF%9D%E7%89%88">第二部分：通俗易懂的解释（人话版）</a>
+<ul>
+<li><a href="#b-toolformer-%E7%9A%84%E8%87%AA%E7%9B%91%E7%9D%A3%E6%8D%9F%E5%A4%B1"><strong>B. Toolformer 的自监督损失</strong></a></li>
+</ul>
+</li>
+<li><a href="#%E7%AC%AC%E4%B8%80%E9%83%A8%E5%88%86%E6%B7%B1%E5%BA%A6%E5%AD%A6%E6%9C%AF%E8%A7%A3%E6%9E%90-academic-deep-dive">第一部分：深度学术解析 (Academic Deep Dive)</a>
+<ul>
+<li><a href="#1-%E6%A0%B8%E5%BF%83%E5%AE%9A%E4%B9%89%E6%8B%86%E8%A7%A3">1. 核心定义拆解</a></li>
+<li><a href="#2-%E4%B8%89%E7%A7%8D%E7%8A%B6%E6%80%81%E7%9A%84%E5%AF%B9%E6%AF%94-the-three-baselines">2. 三种状态的对比 (The Three Baselines)</a></li>
+<li><a href="#3-%E6%94%B6%E7%9B%8A%E5%87%BD%E6%95%B0%E4%B8%8E%E9%98%88%E5%80%BC-the-benefit-function">3. 收益函数与阈值 (The Benefit Function)</a></li>
+<li><a href="#4-%E5%BE%AE%E8%B0%83%E7%9B%AE%E6%A0%87-fine-tuning-objective">4. 微调目标 (Fine-tuning Objective)</a></li>
+</ul>
+</li>
+<li><a href="#%E7%AC%AC%E4%BA%8C%E9%83%A8%E5%88%86%E9%80%9A%E4%BF%97%E6%98%93%E6%87%82%E7%9A%84%E8%A7%A3%E9%87%8A-plain-english-explanation">第二部分：通俗易懂的解释 (Plain English Explanation)</a></li>
+<li><a href="#3-%E6%89%8B%E6%92%95%E4%BB%A3%E7%A0%81%E9%87%8D%E7%82%B9%E4%B8%8E%E5%AE%9E%E7%8E%B0-whiteboard-coding-focus">3. 手撕代码重点与实现 (Whiteboard Coding Focus)</a>
+<ul>
+<li><a href="#a-%E6%A0%B8%E5%BF%83%E9%80%BB%E8%BE%91%E6%AD%BB%E8%AE%B0%E7%A1%AC%E8%83%8C%E9%83%A8%E5%88%86"><strong>A. 核心逻辑（死记硬背部分）</strong></a></li>
+<li><a href="#b-python-%E5%AE%9E%E7%8E%B0-pytorchmock-llm-%E9%A3%8E%E6%A0%BC"><strong>B. Python 实现 (PyTorch/Mock LLM 风格)</strong></a></li>
+<li><a href="#c-%E5%B7%A5%E7%A8%8B%E8%90%BD%E5%9C%B0%E7%BB%86%E8%8A%82-production"><strong>C. 工程落地细节 (Production)</strong></a></li>
+</ul>
+</li>
+<li><a href="#4-%E9%9D%A2%E8%AF%95%E9%AB%98%E9%A2%91%E8%80%83%E5%AF%9F%E7%82%B9-interview-checkpoints">4. 面试高频考察点 (Interview Checkpoints)</a>
+<ul>
+<li><a href="#q1-react-%E7%9B%B8%E6%AF%94%E4%BA%8E%E6%99%AE%E9%80%9A%E7%9A%84-cot%E6%9C%80%E6%A0%B8%E5%BF%83%E7%9A%84%E5%8C%BA%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88"><strong>Q1: ReAct 相比于普通的 CoT，最核心的区别是什么？</strong></a></li>
+</ul>
+</li>
+<li><a href="#%E7%AC%AC%E4%B8%80%E9%83%A8%E5%88%86%E6%B7%B1%E5%BA%A6%E5%AD%A6%E6%9C%AF%E4%B8%93%E4%B8%9A%E8%A7%A3%E9%87%8A-academic-deep-dive">第一部分：深度学术专业解释 (Academic Deep Dive)</a>
+<ul>
+<li><a href="#1-%E5%B0%81%E9%97%AD%E7%B3%BB%E7%BB%9F%E7%9A%84%E7%86%B5%E5%A2%9E-entropy-increase-in-closed-systems">1. 封闭系统的熵增 (Entropy Increase in Closed Systems)</a></li>
+<li><a href="#2-%E9%94%99%E8%AF%AF%E4%BC%A0%E6%92%AD-error-propagation-cascading-errors">2. 错误传播 (Error Propagation / Cascading Errors)</a></li>
+<li><a href="#3-%E8%A7%82%E5%AF%9F-observation-%E4%B8%8E-%E6%8E%A5%E5%9C%B0-grounding">3. 观察 (Observation) 与 接地 (Grounding)</a></li>
+<li><a href="#4-%E6%8E%A7%E5%88%B6%E7%90%86%E8%AE%BA%E8%A7%86%E8%A7%92%E5%BC%80%E7%8E%AF-vs-%E9%97%AD%E7%8E%AF-open-loop-vs-closed-loop">4. 控制理论视角：开环 vs 闭环 (Open-loop vs Closed-loop)</a></li>
+</ul>
+</li>
+<li><a href="#%E7%AC%AC%E4%BA%8C%E9%83%A8%E5%88%86%E9%80%9A%E4%BF%97%E6%98%93%E6%87%82%E7%9A%84%E8%AF%AD%E8%A8%80%E8%A7%A3%E9%87%8A-layman-explanation">第二部分：通俗易懂的语言解释 (Layman Explanation)</a>
+<ul>
+<li><a href="#1-cot-%E5%B0%B1%E5%83%8F%E6%98%AF%E9%97%AD%E7%9C%BC%E8%B5%B0%E8%BF%B7%E5%AE%AB">1. CoT 就像是“闭眼走迷宫”</a></li>
+<li><a href="#2-react-%E5%B0%B1%E5%83%8F%E6%98%AF%E7%9D%81%E7%9C%BC%E8%B5%B0%E8%BF%B7%E5%AE%AB">2. ReAct 就像是“睁眼走迷宫”</a></li>
+<li><a href="#q2-toolformer-%E5%92%8C-react-%E5%9C%A8%E8%AE%AD%E7%BB%83%E6%8E%A8%E7%90%86%E9%98%B6%E6%AE%B5%E6%9C%89%E4%BB%80%E4%B9%88%E4%B8%8D%E5%90%8C"><strong>Q2: Toolformer 和 ReAct 在训练/推理阶段有什么不同？</strong></a></li>
+</ul>
+</li>
+<li><a href="#%E7%AC%AC%E4%B8%80%E9%83%A8%E5%88%86%E6%B7%B1%E5%BA%A6%E5%AD%A6%E6%9C%AF%E4%B8%93%E4%B8%9A%E8%A7%A3%E9%87%8A-academic-deep-dive-2">第一部分：深度学术专业解释 (Academic Deep Dive)</a>
+<ul>
+<li><a href="#1-%E6%8E%A8%E7%90%86%E6%97%B6%E7%AD%96%E7%95%A5-inference-time-strategy-react">1. 推理时策略 (Inference-time Strategy) —— ReAct</a></li>
+<li><a href="#2-%E8%AE%AD%E7%BB%83%E6%97%B6%E7%AD%96%E7%95%A5-training-time-strategy-toolformer">2. 训练时策略 (Training-time Strategy) —— Toolformer</a></li>
+<li><a href="#3-%E4%B8%A4%E7%A7%8D%E8%8C%83%E5%BC%8F%E7%9A%84%E5%AF%B9%E6%AF%94-paradigm-shift">3. 两种范式的对比 (Paradigm Shift)</a></li>
+</ul>
+</li>
+<li><a href="#%E7%AC%AC%E4%BA%8C%E9%83%A8%E5%88%86%E9%80%9A%E4%BF%97%E6%98%93%E6%87%82%E7%9A%84%E8%AF%AD%E8%A8%80%E8%A7%A3%E9%87%8A-layman-explanation-2">第二部分：通俗易懂的语言解释 (Layman Explanation)</a>
+<ul>
+<li><a href="#1-react-%E5%B0%B1%E5%83%8F%E6%98%AF%E5%B8%A6%E4%BA%86%E4%B8%80%E6%9C%AC%E8%B6%85%E5%8E%9A%E7%9A%84%E8%AF%B4%E6%98%8E%E4%B9%A6%E5%B0%8F%E6%8A%84">1. ReAct 就像是“带了一本超厚的说明书（小抄）”</a></li>
+<li><a href="#2-toolformer-%E5%B0%B1%E5%83%8F%E6%98%AF%E8%80%83%E5%89%8D%E5%8F%82%E5%8A%A0%E4%BA%86%E9%AD%94%E9%AC%BC%E7%89%B9%E8%AE%AD%E5%86%85%E5%8A%9F">2. Toolformer 就像是“考前参加了魔鬼特训（内功）”</a></li>
+<li><a href="#q3-%E5%A6%82%E6%9E%9C%E6%A8%A1%E5%9E%8B%E5%9C%A8-loop-%E4%B8%AD%E9%99%B7%E5%85%A5%E6%AD%BB%E5%BE%AA%E7%8E%AF%E4%BE%8B%E5%A6%82%E5%8F%8D%E5%A4%8D%E8%B0%83%E7%94%A8%E5%90%8C%E4%B8%80%E4%B8%AA-search%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3"><strong>Q3: 如果模型在 Loop 中陷入死循环（例如反复调用同一个 Search），怎么解决？</strong></a></li>
+</ul>
+</li>
+<li><a href="#5-%E5%9C%BA%E6%99%AF%E4%B8%8E%E6%BC%94%E8%BF%9B-sota-evolution">5. 场景与演进 (SOTA &amp; Evolution)</a>
+<ul>
+<li><a href="#a-%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF"><strong>A. 业务场景</strong></a></li>
+<li><a href="#b-sota-%E6%BC%94%E8%BF%9B"><strong>B. SOTA 演进</strong></a></li>
+</ul>
+</li>
+<li><a href="#%E6%80%BB%E7%BB%93-summary">总结 (Summary)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://Alive-mk.github.io/post/transformer-xing-neng-fen-xi-yu-flashattention-yuan-li/">
+              <h3 class="post-title">
+                Transformer 性能分析与 FlashAttention 原理 
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://Alive-mk.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

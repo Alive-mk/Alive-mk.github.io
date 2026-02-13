@@ -1,0 +1,497 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>寒假计划 | Alive-mk</title>
+<link rel="shortcut icon" href="https://Alive-mk.github.io/favicon.ico?v=1770951170092">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://Alive-mk.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="寒假计划 | Alive-mk - Atom Feed" href="https://Alive-mk.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="⚠️ 前置心态与准备
+
+目标定义：你的目标不是“看懂书”，而是**“复现Paper”和“手写Infra”**。
+代码要求：JD强调代码强，意味着你不能只调包 transformers，你需要懂 DeepSpeed、vLLM 底层，甚至手写 ..." />
+    <meta name="keywords" content="实习" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://Alive-mk.github.io">
+  <img class="avatar" src="https://Alive-mk.github.io/images/avatar.png?v=1770951170092" alt="">
+  </a>
+  <h1 class="site-title">
+    Alive-mk
+  </h1>
+  <p class="site-description">
+    温故而知新
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              寒假计划
+            </h2>
+            <div class="post-info">
+              <span>
+                2026-01-29
+              </span>
+              <span>
+                10 min read
+              </span>
+              
+                <a href="https://Alive-mk.github.io/tag/pt1Ejsp1Pa/" class="post-tag">
+                  # 实习
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <h3 id="️-前置心态与准备">⚠️ 前置心态与准备</h3>
+<ol>
+<li><strong>目标定义</strong>：你的目标不是“看懂书”，而是**“复现Paper”<strong>和</strong>“手写Infra”**。</li>
+<li><strong>代码要求</strong>：JD强调代码强，意味着你不能只调包 <code>transformers</code>，你需要懂 <code>DeepSpeed</code>、<code>vLLM</code> 底层，甚至手写 CUDA/Triton 算子。</li>
+<li><strong>硬件准备</strong>：你需要至少一张 3090/4090 或 A100/H100 的云计算资源（Colab Pro+, AutoDL, Lambda Labs）。</li>
+</ol>
+<hr>
+<h3 id="整体时间轴-5周冲刺">📅 整体时间轴 (5周冲刺)</h3>
+<ul>
+<li><strong>Week 1: RLHF &amp; PPO/DPO 硬核实战</strong> (打地基：大模型RL基础)</li>
+<li><strong>Week 2: Reasoning &amp; Long CoT 复现</strong> (核心方向一：DeepSeek-R1/o1 原理)</li>
+<li><strong>Week 3: Agent System &amp; Framework</strong> (核心方向二：智能体架构)</li>
+<li><strong>Week 4: LLM Infra &amp; High-Performance Coding</strong> (工程能力：Infra与底层优化)</li>
+<li><strong>Week 5: 综合项目与模拟面试</strong> (产出：高质量GitHub仓库)</li>
+</ul>
+<hr>
+<h3 id="第一周rlhf-ppodpo-硬核实战">第一周：RLHF &amp; PPO/DPO 硬核实战</h3>
+<p><strong>目标</strong>：脱离 HuggingFace <code>TRL</code> 库的黑盒，理解并能手写简易版 PPO/DPO 循环。</p>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>学习内容 (Input)</th>
+<th>实战任务 (Output/Code)</th>
+<th>考核目标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Day 1</strong></td>
+<td><strong>理论</strong>：重读 PPO (Proximal Policy Optimization) 论文，理解 Actor-Critic 架构在 LLM 中的映射。</td>
+<td><strong>代码</strong>：使用 PyTorch 手写一个简单的 PPO demo（解决 CartPole 环境），不要用现成库。</td>
+<td>能口述 PPO 的 Clipping 机制和 Advantage 计算公式。</td>
+</tr>
+<tr>
+<td><strong>Day 2</strong></td>
+<td><strong>理论</strong>：RLHF 流程（SFT -&gt; RM -&gt; PPO）。阅读 InstructGPT 论文。</td>
+<td><strong>代码</strong>：跑通一个微型 LLM（如 Qwen-0.5B）的 SFT 流程。</td>
+<td>能够解释 Reward Model 的数据格式 (Chosen/Rejected)。</td>
+</tr>
+<tr>
+<td><strong>Day 3</strong></td>
+<td><strong>理论</strong>：DPO (Direct Preference Optimization) 论文。理解为什么 DPO 不需要 Reward Model。</td>
+<td><strong>代码</strong>：使用 <code>TRL</code> 库跑通 DPO 微调，对比 PPO 的显存占用和收敛速度。</td>
+<td>讲清楚 DPO 梯度的本质（增加了 Chosen 的概率，降低了 Rejected 的概率）。</td>
+</tr>
+<tr>
+<td><strong>Day 4</strong></td>
+<td><strong>源码阅读</strong>：深入 <code>trl</code> 或 <code>DeepSpeed-Chat</code> 源码，看 PPO 的 <code>step</code> 函数是如何实现的。</td>
+<td><strong>代码</strong>：提取 <code>trl</code> 中的 PPO 核心逻辑，尝试自己封装一个 mini-trainer。</td>
+<td>找到源码中计算 KL Divergence 的那一行代码。</td>
+</tr>
+<tr>
+<td><strong>Day 5</strong></td>
+<td><strong>进阶 RL</strong>：GRPO (Group Relative Policy Optimization) - DeepSeek-R1 用的技术。</td>
+<td><strong>代码</strong>：在小模型上尝试复现 GRPO 的 Loss 函数（如果不使用 Critic 模型，如何做 Group 归一化）。</td>
+<td><strong>核心</strong>：理解 DeepSeek-R1 为什么放弃了 Critic Model。</td>
+</tr>
+<tr>
+<td><strong>Day 6</strong></td>
+<td><strong>ACM 算法特训</strong>：DP (动态规划) 与 图论。</td>
+<td><strong>刷题</strong>：LeetCode Hard 3道，Medium 5道（侧重 DP）。</td>
+<td>不看题解 AC。</td>
+</tr>
+<tr>
+<td><strong>Day 7</strong></td>
+<td><strong>复盘与总结</strong></td>
+<td><strong>产出</strong>：在 GitHub 上传一个 <code>Minimal-RLHF</code> 仓库，包含你的 DPO/PPO 笔记和代码。</td>
+<td>能够向别人解释：为什么 LLM 的 RL 训练极其不稳定？</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="第二周reasoning-long-cot-核心方向一">第二周：Reasoning &amp; Long CoT (核心方向一)</h3>
+<p><strong>目标</strong>：理解 OpenAI o1 和 DeepSeek-R1 背后的技术（CoT, Search, Self-Correction）。</p>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>学习内容 (Input)</th>
+<th>实战任务 (Output/Code)</th>
+<th>考核目标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Day 8</strong></td>
+<td><strong>理论</strong>：CoT 经典论文 (Wei et al.), CoT-SC (Self-Consistency)。</td>
+<td><strong>代码</strong>：实现 CoT-SC，对 GSM8K 数据集进行推理，取多数投票结果。</td>
+<td>证明 CoT-SC 比 Greedy Search 提升了准确率。</td>
+</tr>
+<tr>
+<td><strong>Day 9</strong></td>
+<td><strong>理论</strong>：ToT (Tree of Thoughts) &amp; GoT (Graph of Thoughts)。</td>
+<td><strong>代码</strong>：使用 DFS/BFS 算法重写推理流程，让 LLM 进行“树状搜索”。</td>
+<td>实现一个基于搜索的 24点游戏求解器。</td>
+</tr>
+<tr>
+<td><strong>Day 10</strong></td>
+<td><strong>核心理论</strong>：Process Reward Model (PRM) - &quot;Let's Verify Step by Step&quot; 论文。</td>
+<td><strong>代码</strong>：训练一个简单的 PRM（给推理步骤打分的模型），数据可用 <code>Math-Shepherd</code>。</td>
+<td>PRM 能识别出错误的推理步骤。</td>
+</tr>
+<tr>
+<td><strong>Day 11</strong></td>
+<td><strong>核心复现</strong>：DeepSeek-R1 论文/技术报告。理解 &quot;Aha Moment&quot; 和纯 RL 激发推理能力。</td>
+<td><strong>代码</strong>：设计一个 Prompt + RL 环境，只给最终答案奖励，观察模型是否涌现 CoT（需较强算力，可用极小模型模拟）。</td>
+<td>理解 Cold Start Data (SFT) 对推理模型的重要性。</td>
+</tr>
+<tr>
+<td><strong>Day 12</strong></td>
+<td><strong>强化推理</strong>：STaR (Self-Taught Reasoner) 论文。</td>
+<td><strong>代码</strong>：实现 STaR 循环：生成 CoT -&gt; 过滤正确答案 -&gt; 再微调模型。</td>
+<td>实现一个闭环的 Self-Improvement 脚本。</td>
+</tr>
+<tr>
+<td><strong>Day 13</strong></td>
+<td><strong>ACM 算法特训</strong>：搜索算法 (DFS/BFS/A*) 及其在 LLM 中的应用。</td>
+<td><strong>刷题</strong>：LeetCode 上有关树和图搜索的 Hard 题目。</td>
+<td>能够手写 MCTS (蒙特卡洛树搜索) 的 Python 代码。</td>
+</tr>
+<tr>
+<td><strong>Day 14</strong></td>
+<td><strong>复盘与总结</strong></td>
+<td><strong>产出</strong>：GitHub 仓库 <code>LLM-Reasoning-Gym</code>，包含 ToT/PRM/STaR 的最小实现。</td>
+<td>解释清楚：MCTS 如何引导 LLM 生成更好的 CoT？</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="第三周agent-multi-agent-核心方向二">第三周：Agent &amp; Multi-Agent (核心方向二)</h3>
+<p><strong>目标</strong>：从单体推理走向调用工具和多智能体协作。</p>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>学习内容 (Input)</th>
+<th>实战任务 (Output/Code)</th>
+<th>考核目标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Day 15</strong></td>
+<td><strong>理论</strong>：ReAct (Reasoning + Acting) 论文，Toolformer 论文。</td>
+<td><strong>代码</strong>：从零手写一个 ReAct Loop（不使用 LangChain），让模型调用 Python 计算器。</td>
+<td>模型能解决 &quot;123 * 456 + 789 等于多少&quot; 这种问题。</td>
+</tr>
+<tr>
+<td><strong>Day 16</strong></td>
+<td><strong>框架源码</strong>：深入 <code>LangGraph</code> 或 <code>AutoGen</code> 源码。JD 要求 Infra，所以不要只学调用，要学架构设计。</td>
+<td><strong>代码</strong>：使用 <code>LangGraph</code> 构建一个具备“循环”、“记忆”和“人类介入”的 Agent。</td>
+<td>理解 StateGraph 的设计模式。</td>
+</tr>
+<tr>
+<td><strong>Day 17</strong></td>
+<td><strong>Code Agent</strong>：OpenDevin 或 SWE-Agent 原理。</td>
+<td><strong>代码</strong>：构建一个能读取本地文件、修改代码并运行测试用例的 Agent。</td>
+<td>Agent 能自动修复一个简单的 Python Bug。</td>
+</tr>
+<tr>
+<td><strong>Day 18</strong></td>
+<td><strong>Planning</strong>：Reflexion (自省) 架构。</td>
+<td><strong>代码</strong>：给 Agent 增加“反思”步骤，当执行失败时，生成“为什么失败”并重试。</td>
+<td>提升 Agent 在复杂任务上的成功率。</td>
+</tr>
+<tr>
+<td><strong>Day 19</strong></td>
+<td><strong>Agent + RL</strong>：如何用强化学习优化 Agent 的 Tool Use？(FireAct 等论文)。</td>
+<td><strong>代码</strong>：构造一个轨迹数据集，微调 LLM 使其更擅长调用特定 API。</td>
+<td>微调后的模型 API 调用幻觉率降低。</td>
+</tr>
+<tr>
+<td><strong>Day 20</strong></td>
+<td><strong>ACM 算法特训</strong>：模拟题与字符串处理 (Parser)。</td>
+<td><strong>刷题</strong>：LeetCode 字符串解析、模拟大工程类题目。</td>
+<td>手写一个 JSON Parser (Agent 输出经常需要 Parse)。</td>
+</tr>
+<tr>
+<td><strong>Day 21</strong></td>
+<td><strong>复盘与总结</strong></td>
+<td><strong>产出</strong>：GitHub 仓库 <code>Tiny-Agent-System</code>，一个纯 Python 实现的 Agent 框架。</td>
+<td>解释 Function Calling 在底层是如何修改 Prompt 的？</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="第四周llm-infra-high-performance-jd-加分项">第四周：LLM Infra &amp; High Performance (JD 加分项)</h3>
+<p><strong>目标</strong>：证明你的“代码能力强”和“Infra 经验”。</p>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>学习内容 (Input)</th>
+<th>实战任务 (Output/Code)</th>
+<th>考核目标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Day 22</strong></td>
+<td><strong>理论</strong>：Transformer 性能分析，FlashAttention 原理。</td>
+<td><strong>代码</strong>：使用 PyTorch Profiler 分析你的 LLM 推理过程，找到瓶颈。</td>
+<td>说出 FlashAttention 为什么快 (IO 复杂度)。</td>
+</tr>
+<tr>
+<td><strong>Day 23</strong></td>
+<td><strong>Infra 核心</strong>：vLLM 源码阅读。KV Cache, PagedAttention。</td>
+<td><strong>代码</strong>：尝试手写一个极简的 KV Cache 管理器。</td>
+<td>理解 Block Table 是如何映射逻辑块和物理块的。</td>
+</tr>
+<tr>
+<td><strong>Day 24</strong></td>
+<td><strong>分布式训练</strong>：DeepSpeed ZeRO (1/2/3) 原理，Megatron-LM 张量并行 (TP)。</td>
+<td><strong>代码</strong>：配置一个多卡环境（或模拟），跑通 DeepSpeed ZeRO-3 的训练。</td>
+<td>解释 ZeRO-3 通信量和显存节省的关系。</td>
+</tr>
+<tr>
+<td><strong>Day 25</strong></td>
+<td><strong>底层算子</strong>：OpenAI Triton 教程。</td>
+<td><strong>代码</strong>：用 Triton 写一个简单的 Vector Add 或 Softmax 算子。</td>
+<td>跑通 Triton 代码并对比 PyTorch 原生性能。</td>
+</tr>
+<tr>
+<td><strong>Day 26</strong></td>
+<td><strong>量化</strong>：AWQ, GPTQ, KV Cache Quantization。</td>
+<td><strong>代码</strong>：加载一个 4-bit 量化模型，并对比其与 FP16 的 Perplexity。</td>
+<td>理解量化带来的精度损失与推理加速。</td>
+</tr>
+<tr>
+<td><strong>Day 27</strong></td>
+<td><strong>ACM 算法特训</strong>：并发编程与系统设计。</td>
+<td><strong>刷题</strong>：LeetCode 多线程题目，以及系统设计基础（如设计一个 Rate Limiter）。</td>
+<td>理解 Python GIL 对推理服务的影响。</td>
+</tr>
+<tr>
+<td><strong>Day 28</strong></td>
+<td><strong>复盘与总结</strong></td>
+<td><strong>产出</strong>：写一篇博客《深入理解 PagedAttention》或《vLLM 源码剖析》。</td>
+<td>能够画出 vLLM 的 Request 调度流程图。</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="第五周综合项目与最终考核">第五周：综合项目与最终考核</h3>
+<p><strong>目标</strong>：整合所学，产出一个可以直接写在简历上的“杀手级”项目。</p>
+<ul>
+<li>
+<p><strong>Day 29-32 (Project): &quot;Mini-R1&quot;</strong></p>
+</li>
+<li>
+<p><strong>项目描述</strong>：基于 Qwen-1.5B 或 Llama-3-1B，复现 DeepSeek-R1 的流程。</p>
+</li>
+<li>
+<p><strong>步骤 1</strong>：准备 SFT 数据（包含 CoT 的数学题）。</p>
+</li>
+<li>
+<p><strong>步骤 2</strong>：使用 GRPO (Group Relative Policy Optimization) 进行强化学习训练。</p>
+</li>
+<li>
+<p><strong>步骤 3</strong>：奖励函数设计（答案正确性 + 格式奖励）。</p>
+</li>
+<li>
+<p><strong>步骤 4</strong>：部署成一个 Agent，能够调用 Python 验证自己的答案。</p>
+</li>
+<li>
+<p><strong>Day 33 (Code Optimization):</strong></p>
+</li>
+<li>
+<p>使用 vLLM 部署你的模型，并编写 Benchmark 脚本测试吞吐量 (Tokens/sec)。</p>
+</li>
+<li>
+<p><strong>Day 34 (Resume &amp; Paper):</strong></p>
+</li>
+<li>
+<p>整理 GitHub README，画出架构图。</p>
+</li>
+<li>
+<p>阅读 ICLR 2024/2025 的 Best Paper，准备几个前沿 Research Ideas（面试用）。</p>
+</li>
+<li>
+<p><strong>Day 35 (Mock Interview):</strong></p>
+</li>
+<li>
+<p>自我模拟面试：能够手推 PPO 公式，能够手写 Attention 代码，能够解释 Long CoT 的训练难点。</p>
+</li>
+</ul>
+<hr>
+<h3 id="核心资源列表-bookmark-these">🚀 核心资源列表 (Bookmark These)</h3>
+<ol>
+<li><strong>Papers (必须精读)</strong>:</li>
+</ol>
+<ul>
+<li><em>DeepSeek-R1 Technical Report</em> (必读中的必读)</li>
+<li><em>Proximal Policy Optimization Algorithms</em> (PPO)</li>
+<li><em>Direct Preference Optimization</em> (DPO)</li>
+<li><em>Tree of Thoughts: Deliberate Problem Solving with Large Language Models</em></li>
+<li><em>Wei et al., Chain-of-Thought Prompting Elicits Reasoning in Large Language Models</em></li>
+</ul>
+<ol start="2">
+<li><strong>Code Repos (源码阅读对象)</strong>:</li>
+</ol>
+<ul>
+<li><code>huggingface/trl</code> (RLHF 实现)</li>
+<li><code>vllm-project/vllm</code> (Infra 实现)</li>
+<li><code>langchain-ai/langgraph</code> (Agent 架构)</li>
+<li><code>microsoft/DeepSpeed</code> (分布式训练)</li>
+</ul>
+<ol start="3">
+<li><strong>Course</strong>:</li>
+</ol>
+<ul>
+<li>DeepLearning.AI 的 Agent 相关短课程（快速入门）。</li>
+<li>Andrej Karpathy 的 &quot;Let's build GPT&quot; (如果你基础不牢)。</li>
+</ul>
+<h3 id="考核自己的标准面试模拟题">💡 考核自己的标准（面试模拟题）</h3>
+<p>寒假结束时，你必须能自信回答以下问题：</p>
+<ol>
+<li><strong>Reasoning</strong>: DeepSeek-R1 中的 Group Relative Policy Optimization (GRPO) 相比 PPO 做了什么简化？为什么这对推理任务有效？</li>
+<li><strong>Long CoT</strong>: 如何防止模型在长思维链中产生幻觉？Process Reward Model (PRM) 的数据怎么构建？</li>
+<li><strong>Agent</strong>: ReAct 模式在多轮对话中上下文过长怎么处理？如何设计 Memory 模块？</li>
+<li><strong>Infra</strong>: PagedAttention 是如何解决显存碎片化问题的？KV Cache 随着 Batch Size 增大显存如何变化？</li>
+<li><strong>Code</strong>: 手写一个 Multi-Head Attention，包含 Mask 处理。</li>
+</ol>
+<p>祝你寒假闭关修炼成功！如果能坚持下来，你绝对具备冲击大厂核心算法岗的能力。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#%EF%B8%8F-%E5%89%8D%E7%BD%AE%E5%BF%83%E6%80%81%E4%B8%8E%E5%87%86%E5%A4%87">⚠️ 前置心态与准备</a></li>
+<li><a href="#%E6%95%B4%E4%BD%93%E6%97%B6%E9%97%B4%E8%BD%B4-5%E5%91%A8%E5%86%B2%E5%88%BA">📅 整体时间轴 (5周冲刺)</a></li>
+<li><a href="#%E7%AC%AC%E4%B8%80%E5%91%A8rlhf-ppodpo-%E7%A1%AC%E6%A0%B8%E5%AE%9E%E6%88%98">第一周：RLHF &amp; PPO/DPO 硬核实战</a></li>
+<li><a href="#%E7%AC%AC%E4%BA%8C%E5%91%A8reasoning-long-cot-%E6%A0%B8%E5%BF%83%E6%96%B9%E5%90%91%E4%B8%80">第二周：Reasoning &amp; Long CoT (核心方向一)</a></li>
+<li><a href="#%E7%AC%AC%E4%B8%89%E5%91%A8agent-multi-agent-%E6%A0%B8%E5%BF%83%E6%96%B9%E5%90%91%E4%BA%8C">第三周：Agent &amp; Multi-Agent (核心方向二)</a></li>
+<li><a href="#%E7%AC%AC%E5%9B%9B%E5%91%A8llm-infra-high-performance-jd-%E5%8A%A0%E5%88%86%E9%A1%B9">第四周：LLM Infra &amp; High Performance (JD 加分项)</a></li>
+<li><a href="#%E7%AC%AC%E4%BA%94%E5%91%A8%E7%BB%BC%E5%90%88%E9%A1%B9%E7%9B%AE%E4%B8%8E%E6%9C%80%E7%BB%88%E8%80%83%E6%A0%B8">第五周：综合项目与最终考核</a></li>
+<li><a href="#%E6%A0%B8%E5%BF%83%E8%B5%84%E6%BA%90%E5%88%97%E8%A1%A8-bookmark-these">🚀 核心资源列表 (Bookmark These)</a></li>
+<li><a href="#%E8%80%83%E6%A0%B8%E8%87%AA%E5%B7%B1%E7%9A%84%E6%A0%87%E5%87%86%E9%9D%A2%E8%AF%95%E6%A8%A1%E6%8B%9F%E9%A2%98">💡 考核自己的标准（面试模拟题）</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://Alive-mk.github.io/post/research-note-dosc-theoretical-framework-and-critical-analysis/">
+              <h3 class="post-title">
+                Research Note: DOSC Theoretical Framework &amp; Critical Analysis
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://Alive-mk.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
