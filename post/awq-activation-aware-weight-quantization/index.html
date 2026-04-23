@@ -1,0 +1,243 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AWQ: Activation-aware Weight Quantization | Alive-mk</title>
+<link rel="shortcut icon" href="https://Alive-mk.github.io/favicon.ico?v=1776922756784">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://Alive-mk.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="AWQ: Activation-aware Weight Quantization | Alive-mk - Atom Feed" href="https://Alive-mk.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="这篇论文（AWQ: Activation-aware Weight Quantization）是大模型端侧部署领域的一篇非常经典的突破性研究 。简单来说，它解决的是如何把庞大的大语言模型（LLM）塞进内存和算力有限的边缘设备（比如普通笔记本..." />
+    <meta name="keywords" content="实习" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://Alive-mk.github.io">
+  <img class="avatar" src="https://Alive-mk.github.io/images/avatar.png?v=1776922756784" alt="">
+  </a>
+  <h1 class="site-title">
+    Alive-mk
+  </h1>
+  <p class="site-description">
+    温故而知新
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              AWQ: Activation-aware Weight Quantization
+            </h2>
+            <div class="post-info">
+              <span>
+                2026-03-30
+              </span>
+              <span>
+                6 min read
+              </span>
+              
+                <a href="https://Alive-mk.github.io/tag/pt1Ejsp1Pa/" class="post-tag">
+                  # 实习
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>这篇论文（AWQ: Activation-aware Weight Quantization）是大模型端侧部署领域的一篇非常经典的突破性研究 。简单来说，它解决的是<strong>如何把庞大的大语言模型（LLM）塞进内存和算力有限的边缘设备（比如普通笔记本、手机或微型电脑）里，同时尽量不让模型变“傻”，且跑得飞快</strong> 。</p>
+<p><strong>大模型的“内存墙”：</strong> 像 GPT-3 这样拥有 1750 亿参数的模型，如果用标准的 16 位浮点数（FP16）存储，单单是模型本身就需要占用 350GB 的内存 。这导致大模型很难在普通硬件上运行，极大地限制了它的普及 。</p>
+<p><strong>量化（Quantization）的尴尬：</strong> 为了给模型“瘦身”，业界采用了低比特量化技术，也就是把精确的浮点数压缩成粗糙的低位整数（例如 4-bit 的 INT4） 。但这面临三个巨大的痛点：</p>
+<ul>
+<li>
+<p><strong>直接量化精度崩塌：</strong> 简单粗暴地把数值四舍五入（RTN 方法），会导致大模型的预测准确率严重下降 。</p>
+</li>
+<li>
+<p><strong>高级量化容易“偏科”：</strong> 现有的高级算法（如 GPTQ）需要在特定的<strong>小数据集上进行误差校准</strong>，这往往会导致模型对这批数据“过拟合”，从而丧失了大模型原本出色的通用泛化能力 。</p>
+</li>
+<li>
+<p><strong>混合精度硬件不友好：</strong> 有人提出，只把重要的参数保持高精度（FP16），不重要的压缩成低精度（INT4）。虽然精度保住了，但这对于现代计算机硬件极其不友好，因为芯片在不同数据格式间来回切换会严重拖慢速度 。</p>
+</li>
+</ul>
+<p>AWQ 的全称是“激活值感知的权重量化” 。它的核心解法可以归纳为三个极其巧妙的递进步骤：</p>
+<p><strong>第一步：发现 1% 的“超级权重”</strong> 论文研究者观察到一个现象：<strong>大语言模型里的参数（权重）并不是同等重要的 。实际上，只要找出模型中仅仅 0.1% 到 1% 最关键的“显著权重”（Salient Weights）</strong>，并且不让它们在量化中受损，就能极大程度地挽救模型压缩带来的精度损失 。</p>
+<p><strong>第二步：找超级权重的秘诀不在“权重”，而在“激活值” (Activation-aware)</strong></p>
+<p>这是整篇论文最反直觉也最核心的洞察。</p>
+<ul>
+<li>
+<p>如果我们直接在<strong>权重表里挑数值最大的</strong>，效果并不好 。</p>
+<blockquote>
+<p>直接选择权重数值最大的元素（特征 / 参数）效果不佳的根本原因在于：<strong>权重的绝对值大小并不等价于其对模型输出的实际贡献度或重要性</strong>。这种简单粗暴的选择方式会忽略神经网络的复杂特性与数据分布规律，导致模型性能下降、泛化能力减弱或关键信息丢失。</p>
+</blockquote>
+</li>
+<li>
+<p>AWQ 提出，我们应该去观察**“激活值”（Activation）**的分布 。<strong>激活值就是用户输入的数据流经神经网络时产生的中间结果。</strong></p>
+</li>
+<li>
+<p>逻辑是这样的：如果某一列输入数据（激活值）的数值特别大，说明这列特征很重要；那么，<strong>负责处理这列重要特征的对应权重，自然也就是最重要的“超级权重”</strong> 。</p>
+<blockquote>
+<p><strong>激活值 = 信息流强度</strong></p>
+<p>激活值是输入数据流经网络的中间结果，<strong>数值越大，代表该通道承载的信息越关键、对输出影响越强</strong>。</p>
+<p><strong>权重重要性由激活决定</strong></p>
+<p>权重的作用是 “处理激活”。<strong>处理大激活的权重，才是真正影响模型性能的 “超级权重”</strong>（约占 0.1%–1%）。</p>
+<p><strong>反常识结论</strong></p>
+<p>直接看权重大小（L2 范数 / 绝对值）选重要权重，<strong>效果≈随机选择</strong>；<strong>按激活幅度选，性能大幅提升</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>选择策略</th>
+<th>保留比例</th>
+<th>困惑度（PPL，越低越好）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>随机选择</td>
+<td>1%</td>
+<td>24.23</td>
+</tr>
+<tr>
+<td>按权重大小（L2）</td>
+<td>1%</td>
+<td>22.37</td>
+</tr>
+<tr>
+<td><strong>按激活幅度</strong></td>
+<td><strong>0.1%</strong></td>
+<td><strong>11.58</strong></td>
+</tr>
+<tr>
+<td>按激活幅度</td>
+<td>1%</td>
+<td>13.0</td>
+</tr>
+<tr>
+<td>普通 RTN 量化</td>
+<td>0%</td>
+<td>43.2</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>按权重大小选，几乎没用（仅比随机好一点）。</li>
+<li>按激活选，<strong>仅保留 0.1% 通道，PPL 从 43.2 暴跌到 11.58</strong>。</li>
+</ul>
+<p>为什么权重大小不靠谱</p>
+<ul>
+<li>权重大小受<strong>初始化、正则化、优化器、特征缩放</strong>影响，<strong>不反映真实贡献</strong>。</li>
+<li>大权重可能是<strong>过拟合噪声</strong>；小权重可能对应<strong>关键语义 / 逻辑</strong>。</li>
+</ul>
+</blockquote>
+</li>
+</ul>
+<p><strong>第三步：绝妙的数学替换——“放大”关键权重 (Scaling)</strong> 既然不能用**“混合精度”这种硬件讨厌**的方式来保护那 1% 的权重，AWQ 发明了一个等效的数学技巧 ：</p>
+<ul>
+<li>在进行 INT4 量化之前，算法会偷偷把那 1% 的超级权重在数学上<strong>放大（Scale up）</strong>，同时把它们对应的输入激活值缩小相同的倍数，以保证最终的乘积结果不变 。</li>
+<li><strong>为什么放大就有用？</strong> 想象一下你用一台极其劣质的复印机（代表 INT4 压缩，细节会丢失）复印一页极其重要的文字（关键权重）。AWQ 的做法是：在复印前，先用放大镜把这行关键文字放大两倍。虽然复印机依然劣质，但因为字号变大了，复印出来的相对误差就变小了，字依然清晰可见 。</li>
+<li>通过这种方式，所有的权重最终都可以被转化为统一的 INT4 格式（硬件极其喜欢），<strong>同时完美保护了那 1% 的核心信息 。</strong></li>
+</ul>
+<p><strong>保持大模型的“全能性”：</strong> 因为 AWQ 不需要进行复杂的反向传播来强行修正误差，它不会对校准数据过拟合，非常好地保留了大模型的常识、指令遵循乃至处理图片等多模态任务的能力 。</p>
+<p><strong>真正的极致加速：</strong> 为了将这个数学理论落地，论文还专门写了一个名为 <strong>TinyChat</strong> 的推理系统 。通过优化计算机底层的内存读取方式，AWQ 让大模型在普通的苹果电脑、台式机显卡（RTX 4090）甚至手机芯片上的运行速度，比原本的高精度版本快了 <strong>3 倍</strong>以上 。它甚至让拥有 700 亿参数的 Llama-2 模型成功运行在了单张 64GB 内存的边缘设备上 。</p>
+
+              </div>
+              <div class="toc-container">
+                
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://Alive-mk.github.io/post/triton-an-intermediate-language-and-compiler-for-tiled-neural-network-computations/">
+              <h3 class="post-title">
+                Triton: An Intermediate Language and Compiler for  Tiled Neural Network Computations
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://Alive-mk.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

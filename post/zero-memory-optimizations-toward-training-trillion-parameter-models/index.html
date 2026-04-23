@@ -1,0 +1,392 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ZeRO: Memory Optimizations Toward Training Trillion  Parameter Models | Alive-mk</title>
+<link rel="shortcut icon" href="https://Alive-mk.github.io/favicon.ico?v=1776922756784">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://Alive-mk.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="ZeRO: Memory Optimizations Toward Training Trillion  Parameter Models | Alive-mk - Atom Feed" href="https://Alive-mk.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="在深度学习中，最基础的分布式训练方法是数据并行（Data Parallelism, DP）。它的逻辑是：将训练数据切分给多张 GPU，每张卡各自计算，最后汇总梯度更新模型。
+但这带来了一个致命的物理瓶颈：每张 GPU 显存里都必须存储一份一..." />
+    <meta name="keywords" content="实习" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://Alive-mk.github.io">
+  <img class="avatar" src="https://Alive-mk.github.io/images/avatar.png?v=1776922756784" alt="">
+  </a>
+  <h1 class="site-title">
+    Alive-mk
+  </h1>
+  <p class="site-description">
+    温故而知新
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              ZeRO: Memory Optimizations Toward Training Trillion  Parameter Models
+            </h2>
+            <div class="post-info">
+              <span>
+                2026-03-28
+              </span>
+              <span>
+                11 min read
+              </span>
+              
+                <a href="https://Alive-mk.github.io/tag/pt1Ejsp1Pa/" class="post-tag">
+                  # 实习
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>在深度学习中，最基础的分布式训练方法是<strong>数据并行（Data Parallelism, DP）</strong>。它的逻辑是：将训练数据切分给多张 GPU，每张卡各自计算，最后汇总梯度更新模型。</p>
+<p>但这带来了一个致命的物理瓶颈：<strong>每张 GPU 显存里都必须存储一份一模一样、完整的模型状态。</strong> 在**混合精度（FP16/BF16）**训练和 Adam 优化器下，模型状态主要包含三块，我们称之为“显存三座大山”：</p>
+<blockquote>
+<p>Adam优化器：一、先搞懂：优化器到底是干嘛的？</p>
+<p>优化器是<strong>深度学习模型训练的核心引擎</strong>，是专门用来「找到模型最优参数、让预测误差（损失函数）最小化」的工具。</p>
+<p>通俗类比</p>
+<p>你可以把模型训练比作「下山找山谷最低点」：</p>
+<ul>
+<li>整座山 = 损失函数（高度越高，模型预测误差越大）</li>
+<li>你当前的位置 = 模型当前的参数值</li>
+<li>下山的方向 = 反向传播算出的<strong>梯度</strong>（梯度永远指向损失上升的方向，我们反着走就是损失下降的方向）</li>
+<li>优化器 = 你的「下山策略」：决定每一步迈多大、往哪个方向走最稳、最快，不会摔进坑里（局部最优）、不会在陡坡上晃来晃去（训练震荡）、不会走到死胡同（梯度消失 / 爆炸）。</li>
+</ul>
+<p>模型训练的本质，是通过海量数据，找到一组最优的权重参数，让模型的预测结果和真实结果的差距（损失）最小。</p>
+<p>优化器的核心工作，就是<strong>根据反向传播计算出的梯度，按照特定的策略，迭代更新模型的所有权重参数</strong>，最终让损失函数收敛到最小值。</p>
+<p>它的核心价值有 3 点：</p>
+<ol>
+<li><strong>加速收敛</strong>：让模型更快找到最优参数，减少训练轮次</li>
+<li><strong>稳定训练</strong>：避免训练过程中损失震荡、梯度爆炸 / 消失</li>
+<li><strong>提升泛化能力</strong>：帮助模型跳出局部最优，找到全局更优的参数，让模型在新数据上表现更好</li>
+</ol>
+<p>训练的完整闭环是：</p>
+<p><code>前向传播</code> → 模型用当前参数算出预测结果 → 计算损失（预测与真实的差距）</p>
+<p>→ <code>反向传播</code> → 算出损失对每个参数的梯度</p>
+<p>→ <code>优化器更新</code> → 按照策略更新所有参数</p>
+<p>→ 重复上述循环，直到损失足够小、模型效果达标</p>
+<p>Adam（Adaptive Moment Estimation，自适应矩估计）是 2014 年由 Kingma 和 Ba 提出的自适应优化算法，它结合了<strong>动量法（Momentum）</strong> 和<strong>RMSProp</strong>两大经典优化器的核心优势，是目前深度学习中应用最广、兼容性最强的优化器，尤其适合大模型、大规模数据、梯度稀疏的场景</p>
+<table>
+<thead>
+<tr>
+<th>传统优化器</th>
+<th>核心痛点</th>
+<th>Adam 的解决方案</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>基础 SGD</td>
+<td>所有参数共用一个固定学习率，收敛慢、易震荡，对学习率调参极度敏感</td>
+<td>给每个参数配独立的自适应学习率，同时加入动量加速</td>
+</tr>
+<tr>
+<td>动量法 SGD</td>
+<td>解决了震荡，但还是固定学习率，对稀疏梯度场景（NLP、推荐）不友好</td>
+<td>保留动量机制，新增自适应学习率</td>
+</tr>
+<tr>
+<td>RMSProp</td>
+<td>实现了自适应学习率，但训练早期不稳定，没有动量加速</td>
+<td>保留自适应学习率，加入动量 + 偏差校正，解决早期不稳定问题</td>
+</tr>
+</tbody>
+</table>
+<p>Adam 的三大核心机制</p>
+<h5 id="1一阶矩动量机制解决震荡-加速收敛">（1）一阶矩：动量机制（解决震荡、加速收敛）</h5>
+<p>一阶矩就是<strong>梯度的指数移动平均值</strong>，相当于给参数更新加上了「惯性」：</p>
+<ul>
+<li>它会累积历史梯度的方向，让参数更新始终沿着主流的下降方向走</li>
+<li>好处：避免梯度来回波动导致的训练震荡，哪怕遇到局部小坑也能靠惯性冲出去，大幅加快收敛速度</li>
+</ul>
+<h5 id="2二阶矩自适应学习率解决调参难-稀疏梯度问题">（2）二阶矩：自适应学习率（解决调参难、稀疏梯度问题）</h5>
+<p>二阶矩就是<strong>梯度平方的指数移动平均值</strong>，实现了「每个参数专属学习率」：</p>
+<ul>
+<li>对梯度大、更新太猛的参数，自动缩小学习率，避免更新过度</li>
+<li>对梯度小、更新太慢的参数，自动放大学习率，避免停滞不前</li>
+<li>好处：天生适配梯度稀疏的场景（比如 NLP 的词嵌入、推荐系统的特征），默认超参数就能有很好的效果，大幅降低调参难度</li>
+</ul>
+<h5 id="3偏差校正解决训练早期不稳定">（3）偏差校正（解决训练早期不稳定）</h5>
+<p>因为一阶矩、二阶矩的初始值都是 0，训练早期的估计值会严重偏低，导致更新幅度异常。Adam 通过偏差校正项，修正了初始阶段的估计偏差，让训练从第一轮开始就稳定可控。</p>
+</blockquote>
+<blockquote>
+<p>混合精度：</p>
+<p>混合精度是深度学习中一种<strong>结合低精度 (FP16/BF16) 与高精度 (FP32) 计算</strong>的优化技术，核心是 &quot;按需分配精度&quot;：对精度不敏感的操作 (如卷积、矩阵乘法) 使用 16 位精度提升速度并降低内存占用，对数值敏感操作 (如归一化、损失计算、参数更新) 保留 32 位精度保证稳定性TensorFlow。</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>FP16</th>
+<th>BF16</th>
+<th>优势方</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>指数位</strong></td>
+<td>5 位</td>
+<td>8 位 (与 FP32 相同)</td>
+<td>BF16 (动态范围大)</td>
+</tr>
+<tr>
+<td><strong>尾数位</strong></td>
+<td>10 位</td>
+<td>7 位</td>
+<td>FP16 (精度更高)</td>
+</tr>
+<tr>
+<td><strong>数值范围</strong></td>
+<td>窄 (±65504)</td>
+<td>宽 (与 FP32 一致)</td>
+<td>BF16 (避免溢出 / 下溢)</td>
+</tr>
+<tr>
+<td><strong>精度</strong></td>
+<td>较高 (约 3-4 位小数)</td>
+<td>较低 (约 2 位小数)</td>
+<td>FP16 (适合对精度敏感任务)</td>
+</tr>
+<tr>
+<td><strong>训练稳定性</strong></td>
+<td>需 Loss Scaling 防止梯度下溢</td>
+<td>天然稳定，无需 Loss Scaling</td>
+<td>BF16 (大模型训练首选)</td>
+</tr>
+<tr>
+<td><strong>硬件支持</strong></td>
+<td>广泛支持 (包括旧 GPU)</td>
+<td>现代硬件 (A100/H100、TPU)</td>
+<td>取决于硬件平台</td>
+</tr>
+<tr>
+<td><strong>内存带宽</strong></td>
+<td>减半</td>
+<td>减半</td>
+<td>相同 (均为 FP32 的一半)</td>
+</tr>
+<tr>
+<td><strong>计算速度</strong></td>
+<td>Tensor Core 下比 FP32 快 2-4 倍</td>
+<td>与 FP16 相当</td>
+<td>相同 (取决于硬件优化)</td>
+</tr>
+</tbody>
+</table>
+<p>混合精度训练核心原理</p>
+<ul>
+<li>
+<p><strong>参数存储</strong>：主权重始终以 FP32 存储，保证更新精度</p>
+</li>
+<li>
+<p><strong>前向计算</strong>：将 FP32 权重转换为 FP16/BF16 进行计算，中间结果部分保留 FP32</p>
+</li>
+<li>
+<p><strong>反向传播</strong>：梯度计算使用 FP16/BF16 加速，BF16 无需额外处理，FP16 需 Loss Scaling 防止下溢</p>
+</li>
+<li>
+<p><strong>参数更新</strong>：梯度转换回 FP32，与优化器状态一起更新主权重</p>
+</li>
+</ul>
+<p>自动混合精度 (AMP)</p>
+<p>主流框架 (PyTorch、TensorFlow、飞桨) 提供 AMP 工具，通过：</p>
+<ul>
+<li><strong>autocast 上下文管理器</strong>：自动识别适合低精度的操作</li>
+<li><strong>GradScaler</strong>：仅用于 FP16，放大损失值避免梯度下溢，更新时还原梯度</li>
+</ul>
+<p>Loss Scaling (FP16 特有)</p>
+<p>FP16 动态范围小，梯度值可能低于最小可表示值导致信息丢失。解决方法：</p>
+<ul>
+<li>前向传播时将损失乘以缩放因子 (如 1024)</li>
+<li>反向传播得到放大的梯度，更新前除以相同因子恢复原值</li>
+</ul>
+<p>主权重 FP32 保存</p>
+<p>所有 16 位计算均基于 FP32 主权重的副本，确保更新精度不受低精度限制，是混合精度训练的核心保障。</p>
+</blockquote>
+<ul>
+<li>
+<p><strong>模型参数（Parameters）</strong>：模型自身的权重。</p>
+</li>
+<li>
+<p><strong>梯度（Gradients）</strong>：反向传播计算出的导数。</p>
+</li>
+<li>
+<p><strong>优化器状态（Optimizer States）</strong>：这是最大的显存杀手。为了保证更新精度，Adam 优化器不仅需要保存 FP32 的参数备份，还要保存 FP32 的动量（Momentum）和方差（Variance）。</p>
+</li>
+</ul>
+<p>在标准的 DP 中，如果集群有 64 张卡，这“三座大山”就被重复存储了 64 份。当模型参数达到百亿级别时，单张 GPU 的物理显存（比如 80GB 的 A100）连这“三座大山”的十分之一都塞不下，直接导致 Out of Memory (OOM)。</p>
+<p>ZeRO 的架构哲学：化零为整，按需获取</p>
+<p>ZeRO（Zero Redundancy Optimizer）的底层哲学非常克制且优雅：<strong>将整个 GPU 集群的显存视为一个统一的、全局的内存池。</strong> 既然单卡装不下，我们就把这“三座大山”切碎，均匀地分布在集群的所有显卡中。系统保证<strong>在任何时刻，集群中只有一份完整的模型状态</strong>（这就是“零冗余”的由来）。单张卡需要用到什么数据，再通过高速网络临时拉取。</p>
+<h4 id="zero-1切分优化器状态-optimizer-state-partitioning">ZeRO-1：切分优化器状态 (Optimizer State Partitioning)</h4>
+<ul>
+<li><strong>工程逻辑</strong>：既然有 N 张卡，我们就把最庞大的优化器状态切成 N 份。每张卡只负责维护 1/N 的优化器状态，进而也只负责更新那 1/N 的模型参数。</li>
+<li><strong>运行机制</strong>：前向和反向传播正常进行（大家还是各自计算各自的数据），但在最后一步更新参数时，每张卡只更新自己负责的那一块参数，更新完毕后，通过 <code>All-Gather</code> 通信操作，把更新后的参数广播给所有卡。</li>
+<li><strong>收益</strong>：极大地砍掉了显存占用，同时通信开销并没有比标准 DP 增加多少。</li>
+</ul>
+<h4 id="zero-2切分梯度-gradient-partitioning">ZeRO-2：切分梯度 (Gradient Partitioning)</h4>
+<ul>
+<li><strong>工程逻辑</strong>：在 ZeRO-1 的基础上更进一步。既然每张卡只负责更新 1/N 的参数，那么它在反向传播结束后，其实也只需要保留对应那 1/N 的梯度即可。</li>
+<li><strong>运行机制</strong>：反向传播计算出一层梯度后，立刻使用 <code>Reduce-Scatter</code> 通信原语，把属于其他卡的梯度发送过去，并接收属于自己的梯度，然后<strong>立刻释放掉显存中不需要的梯度</strong>。</li>
+<li><strong>收益</strong>：梯度占用的显存也被削减到了 1/N。到这一步，显存已经被大幅度释放，通常足以应对中等规模的大模型。</li>
+</ul>
+<h4 id="zero-3切分模型参数-parameter-partitioning">ZeRO-3：切分模型参数 (Parameter Partitioning)</h4>
+<ul>
+<li>
+<p><strong>工程逻辑</strong>：最极致的显存优化方案（Fully Sharded）。连模型参数也切分成 N 份，每张卡平时只存 1/N 的参数。</p>
+</li>
+<li>
+<p><strong>运行机制（核心考点）</strong>：这采用了一种 <strong>JIT (Just-In-Time，即时编译/按需获取)</strong> 的思想。</p>
+<blockquote>
+<p>JIT:<strong>JIT (Just-In-Time) 即时编译</strong>是一种<strong>混合执行模式</strong>，在程序运行期间动态将中间代码 (字节码 / IR) 编译为本地机器码并执行，结合了解释执行的灵活性与静态编译的高性能优势。其核心理念是 &quot;<strong>按需编译</strong>&quot;—— 仅对高频执行的&quot; 热点代码 &quot; 进行编译优化，而非一次性编译全部代码。</p>
+<blockquote>
+<p>本质：JIT = 解释执行 (快速启动)+ 编译执行 (高性能)，在运行时动态平衡两者，实现 &quot;在正确的时间，为正确的代码，做正确的编译&quot;</p>
+</blockquote>
+</blockquote>
+<ul>
+<li>当模型在做前向或反向传播，运行到第 K 层时，当前卡发现自己手里只有 1/N 的第 K 层参数，于是立刻触发 <code>All-Gather</code>，从其他卡那里把剩余的参数拉取过来，拼成完整的第 K 层。</li>
+<li>一旦第 K 层计算完毕，<strong>立刻把借来的参数丢弃（释放显存）</strong>，只保留自己负责的那 1/N，接着去算第 K+1 层。</li>
+</ul>
+</li>
+<li>
+<p><strong>收益</strong>：单卡显存占用被压缩到了理论极限。只要你加机器（N 足够大），多大的模型都能跑起来。</p>
+</li>
+</ul>
+<p>在面试中，仅仅讲出原理是不够的，你需要展示出作为系统工程师的“权衡思维”（Trade-off）。</p>
+<p>用最通俗的工程语言总结：<strong>ZeRO 的本质是“以通信带宽换取显存空间”。</strong></p>
+<ul>
+<li><strong>它的代价是什么？</strong> 尤其是 ZeRO-3，它在计算每一层之前都需要进行一次全量参数的网络传输，计算完立刻丢弃，下次用到再传。这会产生极其密集的网络通信。</li>
+<li><strong>工业界的实际落地考量</strong>：如果集群的机器之间只有普通的以太网，ZeRO-3 的通信延迟会让 GPU 长时间处于等待状态（算力利用率极低）。所以，ZeRO-3 通常强依赖于节点间的 InfiniBand (IB) 高速网络。而在带宽一般的环境下，算法工程师往往会退而求其次，只开启 ZeRO-2。</li>
+</ul>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#1%E4%B8%80%E9%98%B6%E7%9F%A9%E5%8A%A8%E9%87%8F%E6%9C%BA%E5%88%B6%E8%A7%A3%E5%86%B3%E9%9C%87%E8%8D%A1-%E5%8A%A0%E9%80%9F%E6%94%B6%E6%95%9B">（1）一阶矩：动量机制（解决震荡、加速收敛）</a></li>
+<li><a href="#2%E4%BA%8C%E9%98%B6%E7%9F%A9%E8%87%AA%E9%80%82%E5%BA%94%E5%AD%A6%E4%B9%A0%E7%8E%87%E8%A7%A3%E5%86%B3%E8%B0%83%E5%8F%82%E9%9A%BE-%E7%A8%80%E7%96%8F%E6%A2%AF%E5%BA%A6%E9%97%AE%E9%A2%98">（2）二阶矩：自适应学习率（解决调参难、稀疏梯度问题）</a></li>
+<li><a href="#3%E5%81%8F%E5%B7%AE%E6%A0%A1%E6%AD%A3%E8%A7%A3%E5%86%B3%E8%AE%AD%E7%BB%83%E6%97%A9%E6%9C%9F%E4%B8%8D%E7%A8%B3%E5%AE%9A">（3）偏差校正（解决训练早期不稳定）</a></li>
+</ul>
+</li>
+<li><a href="#zero-1%E5%88%87%E5%88%86%E4%BC%98%E5%8C%96%E5%99%A8%E7%8A%B6%E6%80%81-optimizer-state-partitioning">ZeRO-1：切分优化器状态 (Optimizer State Partitioning)</a></li>
+<li><a href="#zero-2%E5%88%87%E5%88%86%E6%A2%AF%E5%BA%A6-gradient-partitioning">ZeRO-2：切分梯度 (Gradient Partitioning)</a></li>
+<li><a href="#zero-3%E5%88%87%E5%88%86%E6%A8%A1%E5%9E%8B%E5%8F%82%E6%95%B0-parameter-partitioning">ZeRO-3：切分模型参数 (Parameter Partitioning)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://Alive-mk.github.io/post/react-and-toolformer/">
+              <h3 class="post-title">
+                ReAct &amp; Toolformer
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://Alive-mk.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
